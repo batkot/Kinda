@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="App.fs" />
+    <Compile Include="Functor.fs" />
+    <Compile Include="Applicative.fs" />
+    <Compile Include="Monad.fs" />
+  </ItemGroup>
+
+</Project>
