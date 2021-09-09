@@ -11,6 +11,7 @@
     <Compile Include="Monad.fs" />
     <Compile Include="Identity.fs" />
     <Compile Include="List.fs" />
+    <Compile Include="StateT.fs" />
   </ItemGroup>
 
 </Project>
