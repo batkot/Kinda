@@ -1,6 +1,6 @@
 module Kindly.Test.ApplicativeTests
 
-open Expecto
+open Expecto 
 
 open Kindly.App
 open Kindly.Applicative
@@ -55,19 +55,20 @@ let applicativeLaws (applicative: Applicative<'F>) =
         ]
 
         testList "Homomorphism" [
+            let genericHomomorphism x y = Laws.homomorphism applicative x y
+
             testProperty "One" <| fun (x: int) (y: int) -> Laws.homomorphism applicative ((+) x >> sprintf "%A") y
-            testProperty "Two" <| Laws.homomorphism applicative Option.isSome
+            testProperty "Two" genericHomomorphism<int,string>
+            testProperty "Three" genericHomomorphism<int list,string option>
+            testProperty "Four" <| Laws.homomorphism applicative Option.isSome
         ]
 
         testList "Composition" [
             let genericComposition f g x = Laws.composition applicative (applicative.Pure f) (applicative.Pure g) (applicative.Pure x)
 
             testProperty "One" <| genericComposition List.length (sprintf "%d")
-
-            let ofOption error = function
-                | None -> Error error
-                | Some x -> Ok x
-            testProperty "Two" <| fun (x: int) (y: string) -> genericComposition (Option.map ((+) x)) (ofOption y)
+            testProperty "Two" genericComposition<float option, Result<float, string>, string>
+            testProperty "Three" genericComposition<int, string list, unit option>
         ]
 
         testList "Interchange" [
