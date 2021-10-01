@@ -3,7 +3,6 @@ module Kindly.Test.StateTTests
 open Expecto
 open Expecto.Flip
 
-open Kindly.App
 open Kindly.Monad
 open Kindly.StateT
 
@@ -12,10 +11,13 @@ let tests =
     testList "State Tests" [
         testList "Should maintain state" [
             let stateAction (f: 's -> 's) = 
-                State.get<'s> 
-                |> StateTH.Inject
-                |> StateMonad.Instance.Map f
-                |> Monad.flipBind StateMonad.Instance (State.put >> StateTH.Inject)
+                monad StateMonad.Instance {
+                    let! state = State.get<'s> |> StateTH.Inject
+
+                    do! f state
+                        |> State.put
+                        |> StateTH.Inject
+                }
 
             testProperty "Int" <| 
                 fun (initState: int) (added: int) -> 

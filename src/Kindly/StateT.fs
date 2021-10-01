@@ -21,37 +21,37 @@ type StateTH<'s, 'M> =
     static member Project (app: App<StateTH<'s, 'M>, 'a>) : StateT<'s, 'M, 'a> = 
         unwrap app :?> _
 
-type StateTMonad<'s, 'M> (monad: Monad<'M> ) = 
+type StateTMonad<'s, 'M> (innerMonad: Monad<'M> ) = 
     interface Monad<StateTH<'s, 'M>> with
         member _.Map (f : 'a -> 'b) (x: App<StateTH<'s, 'M>, 'a>) : App<StateTH<'s, 'M>,'b> =
             StateT <| fun state ->
                 StateTH.Project x
                 |> runStateT state
-                |> monad.Map (fun (st, a) -> st, f a)
+                |> innerMonad.Map (fun (st, a) -> st, f a)
             |> StateTH.Inject
 
         member _.Pure (x : 'a) : App<StateTH<'s,'M>, 'a> = 
-            StateT <| fun state -> monad.Pure (state, x) 
+            StateT <| fun state -> innerMonad.Pure (state, x) 
             |> StateTH.Inject
 
         member _.Apply (fab: App<StateTH<'s,'M>, 'a -> 'b>) (a: App<StateTH<'s,'M>,'a>) : App<StateTH<'s,'M>, 'b> = 
             StateT <| fun state -> 
-                let fab' = 
-                    StateTH.Project fab
-                    |> runStateT state
+                monad innerMonad {
+                    let! (state1, f) = StateTH.Project fab |> runStateT state
+                    let! (state2, a) = StateTH.Project a |> runStateT state1
 
-                monad.Bind fab' 
-                    (fun (state1, f) -> StateTH.Project a |> runStateT state1 |> monad.Map (fun (state2, a) -> (state2, f a)))
+                    return (state2, f a)
+                }
             |> StateTH.Inject
 
         member _.Bind (ma: App<StateTH<'s,'M>, 'a>) (f : 'a -> App<StateTH<'s,'M>, 'b>) =
             StateT <| fun state ->
-                let ma' = 
-                    StateTH.Project ma
-                    |> runStateT state
-
-                monad.Bind ma'
-                    (fun (state1, a) -> f a |> StateTH.Project |> runStateT state1)
+                monad innerMonad {
+                    let! (state1, a) = StateTH.Project ma |> runStateT state
+                    return! f a
+                        |> StateTH.Project
+                        |> runStateT state1
+                }
             |> StateTH.Inject
 
 
