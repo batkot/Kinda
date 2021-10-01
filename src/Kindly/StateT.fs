@@ -21,6 +21,15 @@ type StateTH<'s, 'M> =
     static member Project (app: App<StateTH<'s, 'M>, 'a>) : StateT<'s, 'M, 'a> = 
         unwrap app :?> _
 
+    static member RunStateT (state: 's) (app: App<StateTH<'s,'M>, 'a>) =
+        StateTH.Project app
+        |> runStateT state
+
+type StateMonadClass<'s, 'M> =
+    { Get : App<'M, 's>
+      Put : 's -> App<'M, unit>
+    }
+
 type StateTMonad<'s, 'M> (innerMonad: Monad<'M> ) = 
     interface Monad<StateTH<'s, 'M>> with
         member _.Map (f : 'a -> 'b) (x: App<StateTH<'s, 'M>, 'a>) : App<StateTH<'s, 'M>,'b> =
@@ -57,7 +66,17 @@ type StateTMonad<'s, 'M> (innerMonad: Monad<'M> ) =
 
     static member Instance<'s> monad = StateTMonad(monad) :> Monad<StateTH<'s,'M>>
 
+    static member StateClass monad =
+        { Get = StateT.get monad |> StateTH.Inject
+          Put = StateT.put monad >> StateTH.Inject
+        } : StateMonadClass<'s, StateTH<'s,Identity>>
+
 type State<'s,'a> = StateT<'s, Identity, 'a>
+
+module State =
+    let get<'s> = StateT.get<Identity, 's> IdentityMonad.Instance 
+
+    let put (state: 'state) = StateT.put IdentityMonad.Instance state
 
 let runState state = runStateT state >> Identity.Project >> runIdentity
 
@@ -66,7 +85,7 @@ type StateMonad<'s> () =
     
     static member Instance = StateMonad<'s>() :> Monad<StateTH<'s,Identity>>
 
-module State =
-    let get<'s> = StateT.get<Identity, 's> IdentityMonad.Instance 
-
-    let put (state: 'state) = StateT.put IdentityMonad.Instance state
+    static member StateClass =
+        { Get = State.get |> StateTH.Inject
+          Put = State.put >> StateTH.Inject
+        } : StateMonadClass<'s, StateTH<'s,Identity>>
