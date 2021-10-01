@@ -12,6 +12,7 @@
     <Compile Include="MonadTests.fs" />
     <Compile Include="IdentityTests.fs" />
     <Compile Include="ListTests.fs" />
+    <Compile Include="StateTTests.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
 

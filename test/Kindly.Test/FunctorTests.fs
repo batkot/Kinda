@@ -6,7 +6,7 @@ open Kindly.App
 open Kindly.Functor
 
 let private functorIdentityLaw<'F, 'a> (functor: Functor<'F>) (f: App<'F,'a>) =
-    id f = functor.Map id f
+    f = functor.Map id f
 
 let private functorCompositionLaw<'F, 'a, 'b, 'c> 
     (functor: Functor<'F>)

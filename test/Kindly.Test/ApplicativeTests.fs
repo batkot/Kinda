@@ -60,7 +60,7 @@ let applicativeLaws (applicative: Applicative<'F>) =
             testProperty "One" <| fun (x: int) (y: int) -> Laws.homomorphism applicative ((+) x >> sprintf "%A") y
             testProperty "Two" genericHomomorphism<int,string>
             testProperty "Three" genericHomomorphism<int list,string option>
-            testProperty "Four" <| Laws.homomorphism applicative Option.isSome
+            testProperty "Four" <| genericHomomorphism Option.isSome
         ]
 
         testList "Composition" [

@@ -7,7 +7,6 @@ open Kindly.Test.FunctorTests
 open Kindly.Test.ApplicativeTests
 open Kindly.Test.MonadTests
 
-open Kindly.App
 open Kindly.List
 
 type ListGen = 
