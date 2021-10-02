@@ -13,7 +13,7 @@ module StateT =
     let put (monad: Monad<'M>) (state: 's): StateT<'s, 'M, unit> = 
         StateT <| fun _ -> monad.Pure (state, ())
 
-let runStateT state (StateT st) = st state
+let runStateT state (StateT st) : App<'M, 's * 'a> = st state
 
 type StateTH<'s, 'M> = 
     static member Inject (state: StateT<'s, 'M, 'a>) : App<StateTH<'s, 'M>, 'a> =
@@ -21,9 +21,8 @@ type StateTH<'s, 'M> =
     static member Project (app: App<StateTH<'s, 'M>, 'a>) : StateT<'s, 'M, 'a> = 
         unwrap app :?> _
 
-    static member RunStateT (state: 's) (app: App<StateTH<'s,'M>, 'a>) =
-        StateTH.Project app
-        |> runStateT state
+    static member Run (state: 's) (app: App<StateTH<'s,'M>, 'a>) =
+        StateTH.Project app |> runStateT state
 
 type StateMonadClass<'s, 'M> =
     { Get : App<'M, 's>

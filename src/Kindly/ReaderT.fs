@@ -17,6 +17,9 @@ type ReaderTH<'r, 'M> =
     static member Project (app: App<ReaderTH<'r, 'M>, 'a>) : ReaderT<'r, 'M, 'a> = 
         unwrap app :?> _
 
+    static member Run (env: 'r) (app: App<ReaderTH<'r,'M>, 'a>) = 
+        ReaderTH.Project app |> runReaderT env
+
 type ReaderTMonad<'r, 'M> (innerMonad: Monad<'M>) =
     interface Monad<ReaderTH<'r,'M>> with
         member _.Map (f: 'a -> 'b) (x: App<ReaderTH<'r,'M>, 'a>) : App<ReaderTH<'r,'M>,'b> =

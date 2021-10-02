@@ -3,7 +3,9 @@ module private Kindly.Experimental
 
 open Kindly.App
 open Kindly.Monad
+open Kindly.Identity
 open Kindly.StateT
+open Kindly.ReaderT
 
 type StateMonadClass<'s,'M> =
     // inherit Monad<'M>
@@ -34,23 +36,41 @@ module Generics =
                 return 1
             }
 
-    let x = 
-        { new ReaderMonadClass<int, int> with 
-            member _.Ask = failwith ""
+    let genericTest2<'r, 's, 'S, 'M when 'S :> Monad<'M> and 'S :> StateMonadClass<'s, 'M> and 'S :> ReaderMonadClass<'r,'M>> 
+        (m: 'S) =
+            monad m {
+                let! st = m.Get
+                let! env = m.Ask
+                do! m.Put st
+                return 1
+            }
 
-          interface StateMonadClass<int, int> with
+    let monadStack<'r,'s> () = ReaderTMonad(StateMonad()) :> Monad<ReaderTH<'r, StateTH<'s, Identity>>>
+
+    type MyStackTH = ReaderTH<string, StateTH<int, Identity>>
+
+    type MyStack (stack: Monad<MyStackTH>) =
+        member _.Run env state =
+            ReaderTH.Run env 
+            >> StateTH.Run state
+            >> Identity.Project
+            >> Identity.runIdentity
+
+        interface Monad<MyStackTH> with
+            member _.Map f x = stack.Map f x
+            member _.Pure x = stack.Pure x
+            member _.Apply fab a = stack.Apply fab a
+            member _.Bind ma f = stack.Bind ma f
+
+        interface StateMonadClass<int, MyStackTH> with
             member _.Get = failwith ""
             member _.Put _ = failwith ""
 
-          interface Monad<int> with 
-            member _.Map _ _ = failwith ""
-            member _.Pure _ = failwith ""
-            member _.Apply _ _ = failwith ""
-            member _.Bind _ _ = failwith ""
-        }
-    
-    // Crap :/
-    // let wut = both x
+        interface ReaderMonadClass<string, MyStackTH> with
+            member _.Ask = failwith ""
+
+    let stack = MyStack(monadStack<string, int> ())
+    let wut = genericTest2 stack 
 
 module Parameters =
     type Dependency<'a, 'b> = 'a -> 'b
