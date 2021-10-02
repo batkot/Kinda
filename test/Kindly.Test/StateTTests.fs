@@ -11,7 +11,7 @@ open Kindly.Monad
 open Kindly.Identity
 open Kindly.StateT
 
-let private stateEq state = 
+let stateEq state = 
     { new Eq<StateTH<'s, Identity>> with
         member _.AreEqual x y =
             let run = StateTH.Run state >> Identity.Run

@@ -6,16 +6,24 @@ open Expecto.Flip
 open Kindly.Test.FunctorTests
 open Kindly.Test.ApplicativeTests
 open Kindly.Test.MonadTests
+open Kindly.Test.ReaderTTests
+open Kindly.Test.StateTTests
 
 open Kindly.Monad
 open Kindly.List
 open Kindly.Identity
 open Kindly.Free
 open Kindly.StateT
+open Kindly.ReaderT
 
 [<Tests>]
 let tests = 
     testList "Free Monad Tests" [
+        let freeIdentity = FreeMonad(IdentityMonad.Instance)
+
+        applicativeLaws defaultEquality freeIdentity
+        monadLaws defaultEquality freeIdentity
+
         testList "Applied to monad should act as monad" [
             let monadicAction m =
                 monad m {
@@ -35,5 +43,7 @@ let tests =
 
             testCase "Identity" <| fun () -> test defaultEquality IdentityMonad.Instance
             testCase "List" <| fun () -> test defaultEquality ListMonad.Instance
+            testCase "State" <| fun () -> test (stateEq 10) StateMonad.Instance
+            testCase "Reader" <| fun () -> test (readerEq "Reader") ReaderMonad.Instance
         ]
     ]
