@@ -12,6 +12,7 @@
     <Compile Include="Identity.fs" />
     <Compile Include="List.fs" />
     <Compile Include="StateT.fs" />
+    <Compile Include="ReaderT.fs" />
     <Compile Include="Experimental.fs" />
   </ItemGroup>
 

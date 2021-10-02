@@ -13,6 +13,7 @@
     <Compile Include="IdentityTests.fs" />
     <Compile Include="ListTests.fs" />
     <Compile Include="StateTTests.fs" />
+    <Compile Include="ReaderTTests.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
 
