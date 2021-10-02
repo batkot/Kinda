@@ -1,5 +1,7 @@
 // Sketchbook
-module private Kindly.Experimental
+module Kindly.Test.Experimental
+
+open Expecto
 
 open Kindly.App
 open Kindly.Monad
@@ -49,12 +51,15 @@ module Generics =
 
     type MyStackTH = ReaderTH<string, StateTH<int, Identity>>
 
-    type MyStack (stack: Monad<MyStackTH>) =
-        member _.Run env state =
-            ReaderTH.Run env 
-            >> StateTH.Run state
-            >> Identity.Project
-            >> Identity.runIdentity
+    type MyStack () =
+        let stateMonad = StateMonad.Instance
+        let stack = ReaderTMonad(stateMonad) :> Monad<MyStackTH>
+
+        member _.Run (env: string) (state: int) (x: App<MyStackTH, 'a>) : (int * 'a)=
+            x
+            |> ReaderTH.Run env 
+            |> StateTH.Run state
+            |> Identity.Run
 
         interface Monad<MyStackTH> with
             member _.Map f x = stack.Map f x
@@ -63,14 +68,42 @@ module Generics =
             member _.Bind ma f = stack.Bind ma f
 
         interface StateMonadClass<int, MyStackTH> with
-            member _.Get = failwith ""
-            member _.Put _ = failwith ""
+            member _.Get = ReaderT (fun _ -> State.get |> StateTH.Inject) |> ReaderTH.Inject
+            member _.Put x = ReaderT (fun _ -> State.put x |> StateTH.Inject) |> ReaderTH.Inject
 
         interface ReaderMonadClass<string, MyStackTH> with
-            member _.Ask = failwith ""
+            member _.Ask = ReaderT.ask<_, string> stateMonad |> ReaderTH.Inject
 
-    let stack = MyStack(monadStack<string, int> ())
-    let wut = genericTest2 stack 
+    let myStack = MyStack()
+    let addToState<'S, 'M when 'S :> Monad<'M> and 'S :> StateMonadClass<int, 'M>> (m: 'S) x = 
+            monad m {
+                let! state = m.Get
+                let result = state + x
+                do! m.Put result
+                return result
+            } 
+    let addFromReader<'S, 'M when 'S :> Monad<'M> and 'S :> ReaderMonadClass<string, 'M>> 
+        (m: 'S) (x: int) = 
+            monad m {
+                let! env = m.Ask
+                return $"{env}-{x}"
+            }
+
+
+    [<Tests>]
+    let tests = 
+        testList "Generic param based type classess"
+            [ testCase "X" <| fun () -> 
+                let (state, returned) = 
+                    monad myStack {
+                        let! result = addToState myStack 10
+                        return! addFromReader myStack result
+                    }
+                    |> myStack.Run "Test" 10
+
+                Expect.equal state 20 "State should be maintained"
+                Expect.equal returned "Test-20" "Reader should be pushed"
+            ]
 
 module Parameters =
     type Dependency<'a, 'b> = 'a -> 'b

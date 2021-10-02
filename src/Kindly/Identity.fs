@@ -16,6 +16,7 @@ type Identity =
         create identity
     static member Project (app: App<Identity, 'a>) : Identity<'a> = 
         unwrap app :?> _
+    static member Run x = Identity.Project x |> runIdentity
 
 type IdentityMonad () =
     interface Monad<Identity> with
