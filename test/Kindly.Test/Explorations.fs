@@ -82,6 +82,7 @@ module Generics =
                 do! m.Put result
                 return result
             } 
+
     let addFromReader<'S, 'M when 'S :> Monad<'M> and 'S :> ReaderMonadClass<string, 'M>> 
         (m: 'S) (x: int) = 
             monad m {

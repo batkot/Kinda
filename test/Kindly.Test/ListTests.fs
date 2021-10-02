@@ -12,8 +12,8 @@ open Kindly.List
 type ListGen = 
     static member List () =
         gen {
-            let! value = Arb.generate<int>
-            return ListMonad.Instance.Pure value
+            let! value = Arb.generate<int list>
+            return List.Inject value
         }
         |> Arb.fromGen
 
