@@ -10,42 +10,15 @@ open Kindly.StateT
 open Kindly.ReaderT
 
 type StateMonadClass<'s,'M> =
-    // inherit Monad<'M>
+    inherit Monad<'M>
     abstract member Get : App<'M,'s>
     abstract member Put : 's -> App<'M,unit>
 
 type ReaderMonadClass<'r,'M> =
-    // inherit Monad<'M>
+    inherit Monad<'M>
     abstract member Ask : App<'M, 'r>
 
 module Generics = 
-    let justReader<'M when 'M :> ReaderMonadClass<int, 'M>> (m: 'M) = m.Ask
-    let justState<'M when 'M :> StateMonadClass<int, 'M>> (m: 'M) = m.Put
-
-    let both m = monad m {
-        let! x = justReader m
-        do! justState m x
-        return x 
-    }
-
-    let genericTest<'r, 's, 'M when 'M :> Monad<'M> and 'M :> StateMonadClass<'s, 'M> and 'M :> ReaderMonadClass<'r,'M>> 
-        (m: 'M) =
-            monad m {
-                let! st = m.Get
-                let! env = m.Ask
-                do! m.Put st
-                return 1
-            }
-
-    let genericTest2<'r, 's, 'S, 'M when 'S :> Monad<'M> and 'S :> StateMonadClass<'s, 'M> and 'S :> ReaderMonadClass<'r,'M>> 
-        (m: 'S) =
-            monad m {
-                let! st = m.Get
-                let! env = m.Ask
-                do! m.Put st
-                return 1
-            }
-
     let monadStack<'r,'s> () = ReaderTMonad(StateMonad()) :> Monad<ReaderTH<'r, StateTH<'s, Identity>>>
 
     type MyStackTH = ReaderTH<string, StateTH<int, Identity>>
@@ -75,7 +48,7 @@ module Generics =
 
     let myStack = MyStack()
 
-    let addToState<'S, 'M when 'S :> Monad<'M> and 'S :> StateMonadClass<int, 'M>> (m: 'S) x = 
+    let addToState<'S, 'M when 'S :> StateMonadClass<int, 'M>> (m: 'S) x = 
             monad m {
                 let! state = m.Get
                 let result = state + x
@@ -83,7 +56,7 @@ module Generics =
                 return result
             } 
 
-    let addFromReader<'S, 'M when 'S :> Monad<'M> and 'S :> ReaderMonadClass<string, 'M>> 
+    let addFromReader<'S, 'M when 'S :> ReaderMonadClass<string, 'M>> 
         (m: 'S) (x: int) = 
             monad m {
                 let! env = m.Ask

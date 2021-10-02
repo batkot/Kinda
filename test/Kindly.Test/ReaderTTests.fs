@@ -3,6 +3,8 @@ module Kindly.Test.ReaderTTests
 open Expecto
 open Expecto.Flip
 
+open FsCheck
+
 open Kindly.Monad
 open Kindly.Identity
 open Kindly.ReaderT
@@ -18,9 +20,24 @@ let readerEq env =
             run x = run y
     }
 
+type ReaderGen = 
+    static member Reader () =
+        gen {
+            let! f = Arb.generate<string -> int>
+
+            return monad ReaderMonad.Instance {
+                let! env = Reader.ask |> ReaderTH.Inject
+                return f env
+            }
+        }
+        |> Arb.fromGen
+
+let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<ReaderGen> ] }
+
 [<Tests>]
 let tests = 
     testList "Reader Tests" [
+        functorLaws fsCheckConfig (readerEq "reader") ReaderMonad.Instance
         applicativeLaws (readerEq "reader") ReaderMonad.Instance
         monadLaws (readerEq 16) ReaderMonad.Instance
 

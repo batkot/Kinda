@@ -3,6 +3,8 @@ module Kindly.Test.FreeTests
 open Expecto
 open Expecto.Flip
 
+open FsCheck
+
 open Kindly.Test.FunctorTests
 open Kindly.Test.ApplicativeTests
 open Kindly.Test.MonadTests
@@ -16,11 +18,22 @@ open Kindly.Free
 open Kindly.StateT
 open Kindly.ReaderT
 
+let private freeIdentity = FreeMonad(IdentityMonad.Instance)
+
+type FreeGen = 
+    static member Free () =
+        gen {
+            let! x = Arb.generate<int>
+            return monad freeIdentity { return x }
+        }
+        |> Arb.fromGen
+
+let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<FreeGen> ] }
+
 [<Tests>]
 let tests = 
     testList "Free Monad Tests" [
-        let freeIdentity = FreeMonad(IdentityMonad.Instance)
-
+        functorLaws fsCheckConfig defaultEquality freeIdentity
         applicativeLaws defaultEquality freeIdentity
         monadLaws defaultEquality freeIdentity
 
