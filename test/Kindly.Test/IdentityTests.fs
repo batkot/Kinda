@@ -24,7 +24,7 @@ let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<Iden
 let ``Identity Tests`` =
 
     testList "Identity Tests" [
-      functorLaws fsCheckConfig IdentityMonad.Instance
-      applicativeLaws IdentityMonad.Instance
-      monadLaws IdentityMonad.Instance
+      functorLaws fsCheckConfig defaultEquality IdentityMonad.Instance
+      applicativeLaws defaultEquality IdentityMonad.Instance
+      monadLaws defaultEquality IdentityMonad.Instance
     ]

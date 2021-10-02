@@ -23,7 +23,7 @@ let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<List
 let ``List Tests`` =
 
     testList "List Tests" [
-      functorLaws fsCheckConfig ListMonad.Instance
-      applicativeLaws ListMonad.Instance
-      monadLaws ListMonad.Instance
+      functorLaws fsCheckConfig defaultEquality ListMonad.Instance
+      applicativeLaws defaultEquality ListMonad.Instance
+      monadLaws defaultEquality ListMonad.Instance
     ]

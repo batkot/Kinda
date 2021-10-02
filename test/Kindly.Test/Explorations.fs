@@ -22,7 +22,6 @@ module Generics =
     let justReader<'M when 'M :> ReaderMonadClass<int, 'M>> (m: 'M) = m.Ask
     let justState<'M when 'M :> StateMonadClass<int, 'M>> (m: 'M) = m.Put
 
-    // Constraints infered
     let both m = monad m {
         let! x = justReader m
         do! justState m x
@@ -75,6 +74,7 @@ module Generics =
             member _.Ask = ReaderT.ask<_, string> stateMonad |> ReaderTH.Inject
 
     let myStack = MyStack()
+
     let addToState<'S, 'M when 'S :> Monad<'M> and 'S :> StateMonadClass<int, 'M>> (m: 'S) x = 
             monad m {
                 let! state = m.Get
@@ -88,6 +88,10 @@ module Generics =
                 let! env = m.Ask
                 return $"{env}-{x}"
             }
+
+    let combined m x = 
+        addToState m x 
+        |> Monad.flipBind m (addFromReader m)
 
 
     [<Tests>]
