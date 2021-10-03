@@ -118,10 +118,7 @@ let tests =
                 |> Identity.Run
 
             let expectedLog = 
-                [ "Adding 3 to 0"
-                  "Adding 3 to 3"
-                  "Adding 3 to 6"
-                ]
+                [0; 3; 6] |> List.map (sprintf "Adding 3 to %d")
 
             Expect.equal "Result should be computed" 9 result
             Expect.equal "State should be computed" expectedLog state
