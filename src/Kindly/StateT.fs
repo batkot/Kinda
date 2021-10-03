@@ -62,6 +62,11 @@ type StateTMonad<'s, 'M> (innerMonad: Monad<'M> ) =
                 }
             |> StateTH.Inject
 
+    interface MonadTrans<StateTH<'s,'M>, 'M> with
+        member _.Lift (app: App<'M,'a>) : App<StateTH<'s,'M>, 'a> =
+            StateT <| fun st -> innerMonad.Map (fun a -> (st, a)) app
+            |> StateTH.Inject
+
 
     static member Instance<'s> monad = StateTMonad(monad) :> Monad<StateTH<'s,'M>>
 

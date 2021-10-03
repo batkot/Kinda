@@ -50,6 +50,11 @@ type ReaderTMonad<'r, 'M> (innerMonad: Monad<'M>) =
                 }
             |> ReaderTH.Inject
 
+    interface MonadTrans<ReaderTH<'r,'M>, 'M> with
+        member _.Lift (ma: App<'M,'a>) = 
+            ReaderT <| fun _ -> ma
+            |> ReaderTH.Inject
+
     static member Instance innerMonad = ReaderTMonad(innerMonad) :> ReaderTMonad<'r,'M>
 
 type Reader<'r,'a> = ReaderT<'r, Identity, 'a>
