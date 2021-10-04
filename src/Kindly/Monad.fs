@@ -19,3 +19,4 @@ let monad (monad: Monad<'M>) = MonadBuilder(monad)
 
 type MonadTrans<'T, 'M> = 
     abstract Lift: App<'M, 'a> -> App<App<'T,'M>, 'a>
+    abstract Foo: (Monad<'M> -> App<App<'T,'M>, 'a>) -> App<App<'T,'M>, 'a>

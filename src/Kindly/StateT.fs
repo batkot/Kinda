@@ -66,6 +66,8 @@ type StateTMonad<'s, 'M> (innerMonad: Monad<'M> ) =
     interface MonadTrans<StateTH<'s>,'M> with
         member _.Lift (app: App<'M,'a>) : StateT<'s, 'M, 'a> =
             StateT.fromFunction <| fun st -> innerMonad.Map (fun a -> (st, a)) app
+        member _.Foo f = f innerMonad
+
 
 
     static member Instance<'s> monad = StateTMonad(monad) :> Monad<App<StateTH<'s>,'M>>

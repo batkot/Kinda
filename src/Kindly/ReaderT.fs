@@ -58,6 +58,7 @@ type ReaderTMonad<'r, 'M> (innerMonad: Monad<'M>) =
     interface MonadTrans<ReaderTH<'r>,'M> with
         member _.Lift (ma: App<'M,'a>): ReaderT<'r,'M,'a> = 
             ReaderT.fromFunction <| fun _ -> ma
+        member _.Foo f = f innerMonad
 
     static member Instance innerMonad = ReaderTMonad(innerMonad) :> ReaderTMonad<'r,'M>
 
