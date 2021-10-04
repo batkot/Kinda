@@ -100,13 +100,13 @@ let tests =
             } 
 
             let transformToState =
-                { new NaturalTransform<TestFunctorH, StateTH<string list, Identity>> with 
+                { new NaturalTransform<TestFunctorH, App<StateTH<string list>, Identity>> with 
                     member _.Transform (x: App<TestFunctorH, 'a>) =
                         match TestFunctorH.Project x with
                         | Tell (msg, a) ->
                             monad StateMonad.Instance {
-                                let! state = State.get |> StateTH.Inject
-                                do! State.put (state @ [msg]) |> StateTH.Inject
+                                let! state = State.get
+                                do! State.put (state @ [msg])
                                 return a
                         }
                 }
@@ -114,8 +114,7 @@ let tests =
             let (state, result) = 
                 FreeH.Project freeResult
                 |> runFree StateMonad.Instance transformToState
-                |> StateTH.Run []
-                |> Identity.Run
+                |> State.run []
 
             let expectedLog = 
                 [0; 3; 6] |> List.map (sprintf "Adding 3 to %d")

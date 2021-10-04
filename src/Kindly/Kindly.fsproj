@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Void.fs" />
     <Compile Include="App.fs" />
     <Compile Include="Functor.fs" />
     <Compile Include="Applicative.fs" />

@@ -9,14 +9,15 @@ open Kindly.Test.FunctorTests
 open Kindly.Test.ApplicativeTests
 open Kindly.Test.MonadTests
 
+open Kindly.App
 open Kindly.Monad
 open Kindly.Identity
 open Kindly.StateT
 
 let stateEq state = 
-    { new Eq<StateTH<'s, Identity>> with
+    { new Eq<App<StateTH<'s>, Identity>> with
         member _.AreEqual x y =
-            let run = StateTH.Run state >> Identity.Run
+            let run = StateT.run state >> Identity.Run
             run x = run y
     }
 
@@ -26,9 +27,9 @@ type StateGen =
             let! f = Arb.generate<string -> string * int>
 
             return monad StateMonad.Instance {
-                let! state = State.get |> StateTH.Inject
+                let! state = State.get
                 let (newState, x) = f state
-                do! State.put newState |> StateTH.Inject
+                do! State.put newState
                 return x
             }
         }
@@ -46,18 +47,15 @@ let tests =
         testList "Should maintain state" [
             let stateAction (f: 's -> 's) = 
                 monad StateMonad.Instance {
-                    let! state = State.get<'s> |> StateTH.Inject
+                    let! state = State.get<'s>
 
-                    do! f state
-                        |> State.put
-                        |> StateTH.Inject
+                    do! f state |> State.put
                 }
 
             testProperty "Int" <| 
                 fun (initState: int) (added: int) -> 
                     stateAction ((+) added)
-                    |> StateTH.Project
-                    |> runState initState
+                    |> State.run initState
                     |> fst
                     |> Expect.equal "State should be maintained" (initState + added)
         ]
@@ -65,14 +63,12 @@ let tests =
         testList "Should return computed value based on state" [
             let stateAction (f: 's -> 'x) = 
                 State.get<'s> 
-                |> StateTH.Inject
                 |> StateMonad.Instance.Map f
 
             testProperty "Int" <|
                 fun (initState: int) (added: int) -> 
                     stateAction ((+) added)
-                    |> StateTH.Project
-                    |> runState initState
+                    |> State.run initState
                     |> snd
                     |> Expect.equal "Should compute result based on state" (initState + added)
         ]

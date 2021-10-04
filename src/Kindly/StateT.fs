@@ -3,77 +3,72 @@ module Kindly.StateT
 open Kindly.App
 open Kindly.Identity
 open Kindly.Monad
+open Kindly.Void
 
-type StateT<'s, 'M, 'a> = StateT of ('s -> App<'M, 's * 'a>)
+type private InnerStateT<'s, 'M, 'a> = MkStateT of ('s -> App<'M, 's * 'a>)
+
+let private runStateT state (MkStateT st) : App<'M, 's * 'a> = st state
+
+let private get (monad: Monad<'M>) : InnerStateT<'s, 'M, 's> = 
+    MkStateT <| fun state -> monad.Pure (state, state)
+
+let private put (monad: Monad<'M>) (state: 's): InnerStateT<'s, 'M, unit> = 
+    MkStateT <| fun _ -> monad.Pure (state, ())
+
+type StateTH<'s> = private STH of Void
+
+type StateT<'s,'M,'a> = App<App<StateTH<'s>, 'M>, 'a>
 
 module StateT =
-    let get (monad: Monad<'M>) : StateT<'s, 'M, 's> = 
-        StateT <| fun state -> monad.Pure (state, state)
-
-    let put (monad: Monad<'M>) (state: 's): StateT<'s, 'M, unit> = 
-        StateT <| fun _ -> monad.Pure (state, ())
-
-let runStateT state (StateT st) : App<'M, 's * 'a> = st state
-
-type StateTH<'s, 'M> = 
-    static member Inject (state: StateT<'s, 'M, 'a>) : App<StateTH<'s, 'M>, 'a> =
+    let private inject (state: InnerStateT<'s,'M,'a>) : StateT<'s,'M,'a> = 
         create state
-    static member Project (app: App<StateTH<'s, 'M>, 'a>) : StateT<'s, 'M, 'a> = 
+    
+    let private project (app: StateT<'s,'M,'a>) : InnerStateT<'s,'M,'a> =
         unwrap app :?> _
 
-    static member Run (state: 's) (app: App<StateTH<'s,'M>, 'a>) =
-        StateTH.Project app |> runStateT state
+    let get (monad: Monad<'M>): App<App<StateTH<'s>, 'M>, 's> =
+        get monad |> inject
 
-type StateMonadClass<'s, 'M> =
-    { Get : App<'M, 's>
-      Put : 's -> App<'M, unit>
-    }
+    let put (monad: Monad<'M>) (state: 's): App<App<StateTH<'s>, 'M>, unit> =
+        put monad state |> inject
+
+    let run (state: 's) (x: App<App<StateTH<'s>, 'M>, 'a>) = project x |> runStateT state
+
+    let fromFunction (stateT: 's -> App<'M, 's * 'a>) : StateT<'s,'M,'a>=
+        MkStateT stateT |> inject
 
 type StateTMonad<'s, 'M> (innerMonad: Monad<'M> ) = 
-    interface Monad<StateTH<'s, 'M>> with
-        member _.Map (f : 'a -> 'b) (x: App<StateTH<'s, 'M>, 'a>) : App<StateTH<'s, 'M>,'b> =
-            StateT <| fun state ->
-                StateTH.Project x
-                |> runStateT state
+    interface Monad<App<StateTH<'s>, 'M>> with
+        member _.Map (f : 'a -> 'b) (x: StateT<'s,'M,'a>) : StateT<'s,'M, 'b> =
+            StateT.fromFunction <| fun state ->
+                StateT.run state x
                 |> innerMonad.Map (fun (st, a) -> st, f a)
-            |> StateTH.Inject
 
-        member _.Pure (x : 'a) : App<StateTH<'s,'M>, 'a> = 
-            StateT <| fun state -> innerMonad.Pure (state, x) 
-            |> StateTH.Inject
+        member _.Pure (x : 'a) : StateT<'s,'M,'a> =
+            StateT.fromFunction <| fun state -> innerMonad.Pure (state, x) 
 
-        member _.Apply (fab: App<StateTH<'s,'M>, 'a -> 'b>) (a: App<StateTH<'s,'M>,'a>) : App<StateTH<'s,'M>, 'b> = 
-            StateT <| fun state -> 
+        member _.Apply (fab: StateT<'s,'M,'a -> 'b>) (a: StateT<'s,'M,'a>) : StateT<'s,'M, 'b> =
+            StateT.fromFunction <| fun state -> 
                 monad innerMonad {
-                    let! (state1, f) = StateTH.Project fab |> runStateT state
-                    let! (state2, a) = StateTH.Project a |> runStateT state1
+                    let! (state1, f) = StateT.run state fab
+                    let! (state2, a) = StateT.run state1 a
 
                     return (state2, f a)
                 }
-            |> StateTH.Inject
 
-        member _.Bind (ma: App<StateTH<'s,'M>, 'a>) (f : 'a -> App<StateTH<'s,'M>, 'b>) =
-            StateT <| fun state ->
+        member _.Bind (ma: StateT<'s,'M,'a>) (f : 'a -> StateT<'s,'M,'b>): StateT<'s,'M,'b> =
+            StateT.fromFunction <| fun state ->
                 monad innerMonad {
-                    let! (state1, a) = StateTH.Project ma |> runStateT state
-                    return! f a
-                        |> StateTH.Project
-                        |> runStateT state1
+                    let! (state1, a) = StateT.run state ma
+                    return! f a |> StateT.run state1
                 }
-            |> StateTH.Inject
 
-    interface MonadTrans<StateTH<'s,'M>, 'M> with
-        member _.Lift (app: App<'M,'a>) : App<StateTH<'s,'M>, 'a> =
-            StateT <| fun st -> innerMonad.Map (fun a -> (st, a)) app
-            |> StateTH.Inject
+    interface MonadTrans<StateTH<'s>,'M> with
+        member _.Lift (app: App<'M,'a>) : StateT<'s, 'M, 'a> =
+            StateT.fromFunction <| fun st -> innerMonad.Map (fun a -> (st, a)) app
 
 
-    static member Instance<'s> monad = StateTMonad(monad) :> Monad<StateTH<'s,'M>>
-
-    static member StateClass monad =
-        { Get = StateT.get monad |> StateTH.Inject
-          Put = StateT.put monad >> StateTH.Inject
-        } : StateMonadClass<'s, StateTH<'s,Identity>>
+    static member Instance<'s> monad = StateTMonad(monad) :> Monad<App<StateTH<'s>,'M>>
 
 type State<'s,'a> = StateT<'s, Identity, 'a>
 
@@ -82,14 +77,9 @@ module State =
 
     let put (state: 'state) = StateT.put IdentityMonad.Instance state
 
-let runState state = runStateT state >> Identity.Project >> runIdentity
+    let run (state: 'state) = StateT.run state >> Identity.Run
 
 type StateMonad<'s> () = 
     inherit StateTMonad<'s, Identity>(IdentityMonad.Instance)
     
-    static member Instance = StateMonad<'s>() :> Monad<StateTH<'s,Identity>>
-
-    static member StateClass =
-        { Get = State.get |> StateTH.Inject
-          Put = State.put >> StateTH.Inject
-        } : StateMonadClass<'s, StateTH<'s,Identity>>
+    static member Instance = StateMonad<'s>() :> Monad<App<StateTH<'s>,Identity>>
