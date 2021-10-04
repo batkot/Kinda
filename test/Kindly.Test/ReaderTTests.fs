@@ -5,6 +5,7 @@ open Expecto.Flip
 
 open FsCheck
 
+open Kindly.App
 open Kindly.Monad
 open Kindly.Identity
 open Kindly.ReaderT
@@ -14,9 +15,9 @@ open Kindly.Test.ApplicativeTests
 open Kindly.Test.MonadTests
 
 let readerEq env = 
-    { new Eq<ReaderTH<'r, Identity>> with
+    { new Eq<App<ReaderTH<'r>, Identity>> with
         member _.AreEqual x y = 
-            let run = ReaderTH.Run env >> Identity.Run
+            let run = ReaderT.run env
             run x = run y
     }
 
@@ -26,7 +27,7 @@ type ReaderGen =
             let! f = Arb.generate<string -> int>
 
             return monad ReaderMonad.Instance {
-                let! env = Reader.ask |> ReaderTH.Inject
+                let! env = Reader.ask
                 return f env
             }
         }
@@ -44,16 +45,15 @@ let tests =
         testList "Should return computed value based on environment" [
             let readerAction (f: 'r -> 'a) = 
                 monad ReaderMonad.Instance {
-                    let! env = Reader.ask |> ReaderTH.Inject
+                    let! env = Reader.ask
 
                     return f env
                 }
 
             testProperty "Int" <| 
-                fun (initState: int) (added: int) -> 
+                fun (env: int) (added: int) -> 
                     readerAction ((+) added)
-                    |> ReaderTH.Project
-                    |> runReader initState
-                    |> Expect.equal "Environment should be passed" (initState + added)
+                    |> Reader.run env
+                    |> Expect.equal "Environment should be passed" (env + added)
         ]
     ]

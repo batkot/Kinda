@@ -19,17 +19,17 @@ type ReaderMonadClass<'r,'M> =
     abstract member Ask : App<'M, 'r>
 
 module Generics = 
-    type MyStackTH = ReaderTH<string, App<StateTH<int>, Identity>>
+    type MyStackTH = App<ReaderTH<string>,App<StateTH<int>, Identity>>
 
     type MyStack () =
         let stateMonad = StateMonad.Instance
         let stack = ReaderTMonad(stateMonad)
         let monad = stack :> Monad<MyStackTH>
-        // let (trans: MonadTrans<_,_>) = stack :> MonadTrans<MyStackTH, App<StateTH<int>, Identity>>
+        let (trans: MonadTrans<_,_>) = stack :> MonadTrans<ReaderTH<string>, App<StateTH<int>, Identity>>
 
-        member _.Run (env: string) (state: int) (x: App<MyStackTH, 'a>) : (int * 'a)=
+        member _.Run (env: string) (state: int) (x: ReaderT<string, App<StateTH<int>, Identity>, 'a>) : (int * 'a)=
             x
-            |> ReaderTH.Run env 
+            |> ReaderT.run env 
             |> State.run state
 
         interface Monad<MyStackTH> with
@@ -39,11 +39,11 @@ module Generics =
             member _.Bind ma f = monad.Bind ma f
 
         interface StateMonadClass<int, MyStackTH> with
-            member _.Get = failwith "" //trans.Lift (State.get |> StateTH.Inject)
-            member _.Put x = failwith "" //trans.Lift (State.put x |> StateTH.Inject)
+            member _.Get = trans.Lift State.get
+            member _.Put x = trans.Lift <| State.put x
 
         interface ReaderMonadClass<string, MyStackTH> with
-            member _.Ask = ReaderT.ask<_, string> stateMonad |> ReaderTH.Inject
+            member _.Ask = ReaderT.ask<_, string> stateMonad
 
     let myStack = MyStack()
 

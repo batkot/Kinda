@@ -18,5 +18,4 @@ type MonadBuilder<'M> (monad: Monad<'M>) =
 let monad (monad: Monad<'M>) = MonadBuilder(monad)
 
 type MonadTrans<'T, 'M> = 
-    // Temporary, this is stupid, have to Transformers to App<...> stuff
     abstract Lift: App<'M, 'a> -> App<App<'T,'M>, 'a>
