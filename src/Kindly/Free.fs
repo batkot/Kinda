@@ -52,16 +52,16 @@ type FreeMonad<'F> (innerFunctor: Functor<'F>) =
 
             bind ma f
 
-type NaturalTransform<'F,'M> = 
+type NaturalTransformation<'F,'M> = 
     abstract Transform : App<'F, 'a> -> App<'M, 'a>
 
 let rec runFree 
     (m: Monad<'M>)
-    (naturalTransform: NaturalTransform<'F, 'M>)
+    (nt: NaturalTransformation<'F, 'M>)
     (free: Free<'F,'a>)
     : App<'M, 'a> =
         match free with
         | Pure x -> m.Pure x
         | Free f -> 
-            naturalTransform.Transform f
-            |> Monad.flipBind m (runFree m naturalTransform)
+            nt.Transform f
+            |> Monad.flipBind m (runFree m nt)

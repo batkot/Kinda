@@ -73,11 +73,11 @@ let tests =
 
             let test (eq: Eq<'M>) (monad: Monad<'M>)= 
                 let free = FreeMonad(monad)
-                let idNaturalTransform = { new NaturalTransform<'M,'M> with member _.Transform x = x }
+                let idNt = { new NaturalTransformation<'M,'M> with member _.Transform x = x }
                 let freeM = monadicAction free |> FreeH.Project
                 let monadResult = monadicAction monad
 
-                runFree monad idNaturalTransform freeM
+                runFree monad idNt freeM
                 |> eq.AreEqual monadResult
                 |> Expect.isTrue "Results from Free and Monad should be the same"
 
@@ -100,7 +100,7 @@ let tests =
             } 
 
             let transformToState =
-                { new NaturalTransform<TestFunctorH, App<StateTH<string list>, Identity>> with 
+                { new NaturalTransformation<TestFunctorH, App<StateTH<string list>, Identity>> with 
                     member _.Transform (x: App<TestFunctorH, 'a>) =
                         match TestFunctorH.Project x with
                         | Tell (msg, a) ->
