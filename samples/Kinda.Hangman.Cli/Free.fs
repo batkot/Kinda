@@ -108,7 +108,7 @@ module Interpreter =
         { new NaturalTransformation<HangmanH, Identity> with
             member _.Transform x = interpret x }
 
-let run puzzle = 
+let runFree puzzle = 
     freeHangmanProgram
     |> FreeH.Project
     |> runFree IdentityMonad.Instance (Interpreter.nt puzzle)
