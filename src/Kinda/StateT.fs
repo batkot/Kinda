@@ -1,9 +1,9 @@
-module Kindly.StateT
+module Kinda.StateT
 
-open Kindly.App
-open Kindly.Identity
-open Kindly.Monad
-open Kindly.Void
+open Kinda.App
+open Kinda.Identity
+open Kinda.Monad
+open Kinda.Void
 
 type private InnerStateT<'s, 'M, 'a> = MkStateT of ('s -> App<'M, 's * 'a>)
 

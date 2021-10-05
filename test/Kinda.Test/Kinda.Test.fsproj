@@ -29,6 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Kindly\Kindly.fsproj" />
+    <ProjectReference Include="..\..\src\Kinda\Kinda.fsproj" />
   </ItemGroup>
 </Project>

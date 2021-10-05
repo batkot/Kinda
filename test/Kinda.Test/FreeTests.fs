@@ -1,24 +1,24 @@
-module Kindly.Test.FreeTests
+module Kinda.Test.FreeTests
 
 open Expecto
 open Expecto.Flip
 
 open FsCheck
 
-open Kindly.Test.FunctorTests
-open Kindly.Test.ApplicativeTests
-open Kindly.Test.MonadTests
-open Kindly.Test.ReaderTTests
-open Kindly.Test.StateTTests
+open Kinda.Test.FunctorTests
+open Kinda.Test.ApplicativeTests
+open Kinda.Test.MonadTests
+open Kinda.Test.ReaderTTests
+open Kinda.Test.StateTTests
 
-open Kindly.App
-open Kindly.Functor
-open Kindly.Monad
-open Kindly.List
-open Kindly.Identity
-open Kindly.Free
-open Kindly.StateT
-open Kindly.ReaderT
+open Kinda.App
+open Kinda.Functor
+open Kinda.Monad
+open Kinda.List
+open Kinda.Identity
+open Kinda.Free
+open Kinda.StateT
+open Kinda.ReaderT
 
 let private freeIdentity = FreeMonad(IdentityMonad.Instance)
 

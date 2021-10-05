@@ -5,11 +5,11 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C15AD982-E050-444B-AB34-6E9F73B1B979}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Kindly", "src\Kindly\Kindly.fsproj", "{5260E05A-63A8-4A31-A36E-608C107FA6F1}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Kinda", "src\Kinda\Kinda.fsproj", "{5260E05A-63A8-4A31-A36E-608C107FA6F1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{55EA8328-8960-46A0-9EAD-1B740625B3AA}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Kindly.Test", "test\Kindly.Test\Kindly.Test.fsproj", "{2FDD7AEC-A572-454C-8E13-464DEF629F9C}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Kinda.Test", "test\Kinda.Test\Kinda.Test.fsproj", "{2FDD7AEC-A572-454C-8E13-464DEF629F9C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

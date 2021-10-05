@@ -1,8 +1,8 @@
-module Kindly.Free
+module Kinda.Free
 
-open Kindly.App
-open Kindly.Functor
-open Kindly.Monad
+open Kinda.App
+open Kinda.Functor
+open Kinda.Monad
 
 type Free<'F, 'a> =
     | Pure of 'a

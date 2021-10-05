@@ -1,4 +1,4 @@
-﻿module Kindly.Test.Main
+﻿module Kinda.Test.Main
 
 open Expecto
 

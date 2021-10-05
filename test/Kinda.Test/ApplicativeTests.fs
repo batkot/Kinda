@@ -1,10 +1,10 @@
-module Kindly.Test.ApplicativeTests
+module Kinda.Test.ApplicativeTests
 
 open Expecto 
 
-open Kindly.App
-open Kindly.Applicative
-open Kindly.Test.FunctorTests
+open Kinda.App
+open Kinda.Applicative
+open Kinda.Test.FunctorTests
 
 module private Laws =
     let identity 

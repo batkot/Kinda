@@ -1,9 +1,9 @@
-module Kindly.ReaderT
+module Kinda.ReaderT
 
-open Kindly.App
-open Kindly.Monad
-open Kindly.Identity
-open Kindly.Void
+open Kinda.App
+open Kinda.Monad
+open Kinda.Identity
+open Kinda.Void
 
 type private InnerReaderT<'r,'M,'a> = MkReaderT of ('r -> App<'M, 'a>)
 

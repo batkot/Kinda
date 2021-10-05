@@ -1,7 +1,7 @@
-module Kindly.Applicative
+module Kinda.Applicative
 
-open Kindly.App
-open Kindly.Functor
+open Kinda.App
+open Kinda.Functor
 
 type Applicative<'F> = 
     inherit Functor<'F>

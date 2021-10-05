@@ -1,13 +1,13 @@
 // Sketchbook
-module Kindly.Test.Experimental
+module Kinda.Test.Experimental
 
 open Expecto
 
-open Kindly.App
-open Kindly.Monad
-open Kindly.Identity
-open Kindly.StateT
-open Kindly.ReaderT
+open Kinda.App
+open Kinda.Monad
+open Kinda.Identity
+open Kinda.StateT
+open Kinda.ReaderT
 
 type StateMonadClass<'s,'M> =
     inherit Monad<'M>

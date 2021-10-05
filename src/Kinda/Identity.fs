@@ -1,7 +1,7 @@
-module Kindly.Identity
+module Kinda.Identity
 
-open Kindly.App
-open Kindly.Monad
+open Kinda.App
+open Kinda.Monad
 
 type Identity<'a> = Id of 'a
 

@@ -1,15 +1,15 @@
-module Kindly.Test.IdentityTests
+module Kinda.Test.IdentityTests
 
 open Expecto
 open FsCheck
 
-open Kindly.Test.FunctorTests
-open Kindly.Test.ApplicativeTests
-open Kindly.Test.MonadTests
+open Kinda.Test.FunctorTests
+open Kinda.Test.ApplicativeTests
+open Kinda.Test.MonadTests
 
-open Kindly.App
-open Kindly.Identity
-open Kindly.Monad
+open Kinda.App
+open Kinda.Identity
+open Kinda.Monad
 
 type IdentityGen = 
     static member Identity () =

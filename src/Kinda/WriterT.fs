@@ -1,8 +1,8 @@
-module Kindly.WriterT
+module Kinda.WriterT
 
-open Kindly.App
-open Kindly.Identity
-open Kindly.Monad
+open Kinda.App
+open Kinda.Identity
+open Kinda.Monad
 
 type Monoid<'m> = 
     abstract Mempty: 'm

@@ -1,4 +1,4 @@
-module Kindly.App
+module Kinda.App
 
 type App<'hkt, 'a> = private App of obj
 

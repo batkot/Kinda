@@ -1,13 +1,13 @@
-module Kindly.Test.ListTests
+module Kinda.Test.ListTests
 
 open Expecto
 open FsCheck
 
-open Kindly.Test.FunctorTests
-open Kindly.Test.ApplicativeTests
-open Kindly.Test.MonadTests
+open Kinda.Test.FunctorTests
+open Kinda.Test.ApplicativeTests
+open Kinda.Test.MonadTests
 
-open Kindly.List
+open Kinda.List
 
 type ListGen = 
     static member List () =

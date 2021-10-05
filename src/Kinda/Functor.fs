@@ -1,6 +1,6 @@
-module Kindly.Functor
+module Kinda.Functor
 
-open Kindly.App
+open Kinda.App
 
 type Functor<'F> = 
     abstract Map : ('a -> 'b) -> App<'F, 'a> -> App<'F,'b>

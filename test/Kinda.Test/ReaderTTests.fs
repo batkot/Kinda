@@ -1,18 +1,18 @@
-module Kindly.Test.ReaderTTests
+module Kinda.Test.ReaderTTests
 
 open Expecto
 open Expecto.Flip
 
 open FsCheck
 
-open Kindly.App
-open Kindly.Monad
-open Kindly.Identity
-open Kindly.ReaderT
+open Kinda.App
+open Kinda.Monad
+open Kinda.Identity
+open Kinda.ReaderT
 
-open Kindly.Test.FunctorTests
-open Kindly.Test.ApplicativeTests
-open Kindly.Test.MonadTests
+open Kinda.Test.FunctorTests
+open Kinda.Test.ApplicativeTests
+open Kinda.Test.MonadTests
 
 let readerEq env = 
     { new Eq<App<ReaderTH<'r>, Identity>> with

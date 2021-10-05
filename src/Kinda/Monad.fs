@@ -1,7 +1,7 @@
-module Kindly.Monad
+module Kinda.Monad
 
-open Kindly.App
-open Kindly.Applicative
+open Kinda.App
+open Kinda.Applicative
 
 type Monad<'M> = 
     inherit Applicative<'M>

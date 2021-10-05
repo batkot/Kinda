@@ -1,7 +1,7 @@
-module Kindly.List
+module Kinda.List
 
-open Kindly.App
-open Kindly.Monad
+open Kinda.App
+open Kinda.Monad
 
 type List = 
     static member Inject (list: 'a list) : App<List, 'a> =

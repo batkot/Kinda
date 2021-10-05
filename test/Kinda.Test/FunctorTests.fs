@@ -1,9 +1,9 @@
-module Kindly.Test.FunctorTests
+module Kinda.Test.FunctorTests
 
 open Expecto
 
-open Kindly.App
-open Kindly.Functor
+open Kinda.App
+open Kinda.Functor
 
 type Eq<'F> = 
     abstract AreEqual<'a when 'a : equality> : App<'F,'a> -> App<'F,'a> -> bool

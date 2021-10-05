@@ -1,18 +1,18 @@
-module Kindly.Test.StateTTests
+module Kinda.Test.StateTTests
 
 open Expecto
 open Expecto.Flip
 
 open FsCheck
 
-open Kindly.Test.FunctorTests
-open Kindly.Test.ApplicativeTests
-open Kindly.Test.MonadTests
+open Kinda.Test.FunctorTests
+open Kinda.Test.ApplicativeTests
+open Kinda.Test.MonadTests
 
-open Kindly.App
-open Kindly.Monad
-open Kindly.Identity
-open Kindly.StateT
+open Kinda.App
+open Kinda.Monad
+open Kinda.Identity
+open Kinda.StateT
 
 let stateEq state = 
     { new Eq<App<StateTH<'s>, Identity>> with

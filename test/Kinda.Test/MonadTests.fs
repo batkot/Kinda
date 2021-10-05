@@ -1,11 +1,11 @@
-module Kindly.Test.MonadTests
+module Kinda.Test.MonadTests
 
 open Expecto
 
-open Kindly.App
-open Kindly.Monad
+open Kinda.App
+open Kinda.Monad
 
-open Kindly.Test.FunctorTests
+open Kinda.Test.FunctorTests
 
 module private Laws =
 

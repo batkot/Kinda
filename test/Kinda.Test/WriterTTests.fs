@@ -1,17 +1,15 @@
-module Kindly.Test.WriterTTests
+module Kinda.Test.WriterTTests
 
 open Expecto
-open Expecto.Flip
 
 open FsCheck
 
-open Kindly.Monad
-open Kindly.Identity
-open Kindly.WriterT
+open Kinda.Monad
+open Kinda.WriterT
 
-open Kindly.Test.FunctorTests
-open Kindly.Test.ApplicativeTests
-open Kindly.Test.MonadTests
+open Kinda.Test.FunctorTests
+open Kinda.Test.ApplicativeTests
+open Kinda.Test.MonadTests
 
 let listMonoid = ListMonoid<string> ()
 let writerMonad = WriterMonad.MonadInstance listMonoid
