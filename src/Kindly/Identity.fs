@@ -34,5 +34,5 @@ type IdentityMonad () =
             Identity.Project ma
             |> (runIdentity >> f)
 
-    static member Instance = IdentityMonad () :> Monad<Identity>
+    static member Instance = IdentityMonad ()
 

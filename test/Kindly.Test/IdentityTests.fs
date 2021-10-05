@@ -9,12 +9,13 @@ open Kindly.Test.MonadTests
 
 open Kindly.App
 open Kindly.Identity
+open Kindly.Monad
 
 type IdentityGen = 
     static member Identity () =
         gen {
             let! value = Arb.generate<int>
-            return IdentityMonad.Instance.Pure value
+            return (IdentityMonad.Instance :> Monad<Identity>).Pure value
         }
         |> Arb.fromGen
 

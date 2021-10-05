@@ -30,7 +30,11 @@ module ReaderT =
         MkReaderT readerF |> inject
 
 
-type ReaderTMonad<'r, 'M> (innerMonad: Monad<'M>) =
+type ReaderTMonad<'r, 'M, 'I when 'I :> Monad<'M>> (innerMonad: 'I) =
+
+    member _.InnerMonad = innerMonad
+    member self.Lift x = (self :> MonadTrans<_,_>).Lift x
+
     interface Monad<App<ReaderTH<'r>,'M>> with
         member _.Map (f: 'a -> 'b) (x: ReaderT<'r,'M,'a>) : ReaderT<'r,'M,'b> =
             ReaderT.fromFunction <| fun env -> 
@@ -58,16 +62,15 @@ type ReaderTMonad<'r, 'M> (innerMonad: Monad<'M>) =
     interface MonadTrans<ReaderTH<'r>,'M> with
         member _.Lift (ma: App<'M,'a>): ReaderT<'r,'M,'a> = 
             ReaderT.fromFunction <| fun _ -> ma
-        member _.Foo f = f innerMonad
 
-    static member Instance innerMonad = ReaderTMonad(innerMonad) :> ReaderTMonad<'r,'M>
+    static member Instance innerMonad = ReaderTMonad(innerMonad) :> ReaderTMonad<'r,'M, 'I>
 
 type Reader<'r,'a> = ReaderT<'r, Identity, 'a>
 
 type ReaderMonad<'r> () =
-    inherit ReaderTMonad<'r, Identity>(IdentityMonad.Instance)
+    inherit ReaderTMonad<'r, Identity, IdentityMonad>(IdentityMonad.Instance)
 
-    static member Instance = ReaderMonad() :> ReaderTMonad<'r,Identity>
+    static member Instance = ReaderMonad() :> ReaderTMonad<'r,_, _>
 
 module Reader = 
     let ask<'r> = ReaderT.ask IdentityMonad.Instance : Reader<'r, 'r>

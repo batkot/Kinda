@@ -22,11 +22,8 @@ module Generics =
     type MyStackTH = App<ReaderTH<string>,App<StateTH<int>, Identity>>
 
     type MyStack () =
-        let stateMonad = StateMonad()
-        let stack = ReaderTMonad(stateMonad)
+        let stack = ReaderTMonad(StateMonad())
         let monad = stack :> Monad<MyStackTH>
-        let (trans: MonadTrans<_,_>) = stack :> MonadTrans<ReaderTH<string>, App<StateTH<int>, Identity>>
-        let (stateTrans) = stateMonad :> MonadTrans<_, _>
 
         member _.Run (env: string) (state: int) (x: ReaderT<string, App<StateTH<int>, Identity>, 'a>) : (int * 'a)=
             x
@@ -40,13 +37,27 @@ module Generics =
             member _.Bind ma f = monad.Bind ma f
 
         interface StateMonadClass<int, MyStackTH> with
-            member _.Get = trans.Lift <| stateTrans.Foo StateT.get
-            member _.Put x = trans.Lift <| stateTrans.Foo (fun m -> StateT.put m x)
+            member _.Get = stack.Lift <| StateT.get stack.InnerMonad.InnerMonad
+            member _.Put x = stack.Lift <| StateT.put stack.InnerMonad.InnerMonad x
 
         interface ReaderMonadClass<string, MyStackTH> with
-            member _.Ask = ReaderT.ask<_, string> stateMonad
+            member _.Ask = ReaderT.ask<_, string> stack.InnerMonad
+
+        member _.Hmm x : App<MyStackTH, 'a> = 
+            Id x 
+            |> Identity.Inject
+            |> stack.InnerMonad.Lift
+            |> stack.Lift 
+
 
     let myStack = MyStack()
+
+    let bar (m: StateTMonad<int,_, ReaderTMonad<string, _, _>>) : StateT<int, _, int>=
+        monad m {
+            let! counter = StateT.get m.InnerMonad
+            let! text = m.Lift <| ReaderT.ask m.InnerMonad.InnerMonad
+            return counter + String.length text
+        }
 
     let addToState<'S, 'M when 'S :> StateMonadClass<int, 'M>> (m: 'S) x = 
             monad m {

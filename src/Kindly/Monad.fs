@@ -11,6 +11,7 @@ module Monad =
     let flipBind (monad: Monad<'M>) f x = monad.Bind x f
 
 type MonadBuilder<'M> (monad: Monad<'M>) =
+    member _.Monad = monad
     member _.Return x = monad.Pure x
     member _.ReturnFrom x = x
     member _.Bind (x, f) = monad.Bind x f
@@ -19,4 +20,3 @@ let monad (monad: Monad<'M>) = MonadBuilder(monad)
 
 type MonadTrans<'T, 'M> = 
     abstract Lift: App<'M, 'a> -> App<App<'T,'M>, 'a>
-    abstract Foo: (Monad<'M> -> App<App<'T,'M>, 'a>) -> App<App<'T,'M>, 'a>

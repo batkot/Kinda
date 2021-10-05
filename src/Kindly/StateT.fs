@@ -37,7 +37,11 @@ module StateT =
     let fromFunction (stateT: 's -> App<'M, 's * 'a>) : StateT<'s,'M,'a>=
         MkStateT stateT |> inject
 
-type StateTMonad<'s, 'M> (innerMonad: Monad<'M> ) = 
+type StateTMonad<'s, 'M, 'I when 'I :> Monad<'M>> (innerMonad: 'I) = 
+
+    member _.InnerMonad = innerMonad
+    member self.Lift app = (self :> MonadTrans<_,_>).Lift app
+
     interface Monad<App<StateTH<'s>, 'M>> with
         member _.Map (f : 'a -> 'b) (x: StateT<'s,'M,'a>) : StateT<'s,'M, 'b> =
             StateT.fromFunction <| fun state ->
@@ -66,9 +70,6 @@ type StateTMonad<'s, 'M> (innerMonad: Monad<'M> ) =
     interface MonadTrans<StateTH<'s>,'M> with
         member _.Lift (app: App<'M,'a>) : StateT<'s, 'M, 'a> =
             StateT.fromFunction <| fun st -> innerMonad.Map (fun a -> (st, a)) app
-        member _.Foo f = f innerMonad
-
-
 
     static member Instance<'s> monad = StateTMonad(monad) :> Monad<App<StateTH<'s>,'M>>
 
@@ -82,6 +83,6 @@ module State =
     let run (state: 'state) = StateT.run state >> Identity.Run
 
 type StateMonad<'s> () = 
-    inherit StateTMonad<'s, Identity>(IdentityMonad.Instance)
+    inherit StateTMonad<'s, Identity, IdentityMonad>(IdentityMonad.Instance)
     
     static member Instance = StateMonad<'s>() :> Monad<App<StateTH<'s>,Identity>>
