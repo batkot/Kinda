@@ -50,10 +50,9 @@ type TestFunctorFunctor () =
 type TestFunctor<'a> = App<FreeH<TestFunctorH>, 'a>
 
 let tell (msg: string) : TestFunctor<unit> = 
-    Tell (msg, Pure ())
+    Tell (msg, ())
     |> TestFunctorH.Inject
-    |> Free
-    |> FreeH.Inject
+    |> liftF (TestFunctorFunctor())
 
 let testMonad = FreeMonad(TestFunctorFunctor())
 
@@ -74,7 +73,7 @@ let tests =
             let test (eq: Eq<'M>) (monad: Monad<'M>)= 
                 let free = FreeMonad(monad)
                 let idNt = { new NaturalTransformation<'M,'M> with member _.Transform x = x }
-                let freeM = monadicAction free |> FreeH.Project
+                let freeM = monadicAction free
                 let monadResult = monadicAction monad
 
                 runFree monad idNt freeM
@@ -112,7 +111,7 @@ let tests =
                 }
 
             let (state, result) = 
-                FreeH.Project freeResult
+                freeResult
                 |> runFree StateMonad.Instance transformToState
                 |> State.run []
 

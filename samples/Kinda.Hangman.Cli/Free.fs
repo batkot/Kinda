@@ -39,31 +39,29 @@ type HangmanFunctor () =
 type HangmanFree<'a> = App<FreeH<HangmanH>, 'a>
 
 module HangmanFree = 
-    let monad = FreeMonad(HangmanFunctor()) :> Monad<_>
+    let hangmanFunctor = HangmanFunctor() :> Functor<_>
+    let liftHangmanF (f: App<HangmanH,'a>)= liftF hangmanFunctor f
+    let monad = FreeMonad(hangmanFunctor) :> Monad<_>
+
     let guessNextLetter () : HangmanFree<char> =
-        GuessNextLetter (monad.Pure >> FreeH.Project)
+        GuessNextLetter id
         |> HangmanF.inject
-        |> Free
-        |> FreeH.Inject
+        |> liftHangmanF
 
     let writeLine line : HangmanFree<unit> = 
-        WriteLine (line, Pure ())
+        WriteLine (line, ())
         |> HangmanF.inject
-        |> Free
-        |> FreeH.Inject
+        |> liftHangmanF
 
     let getGame () : HangmanFree<Game> =
-        GetGame (monad.Pure >> FreeH.Project)
+        GetGame id
         |> HangmanF.inject
-        |> Free
-        |> FreeH.Inject
+        |> liftHangmanF
 
     let setGame game : HangmanFree<unit> = 
-        SetGame (game, Pure ())
+        SetGame (game, ())
         |> HangmanF.inject
-        |> Free
-        |> FreeH.Inject
-
+        |> liftHangmanF
 
 let rec freeHangmanProgram = 
     monad HangmanFree.monad {
@@ -109,5 +107,4 @@ module Interpreter =
 
 let runFree puzzle = 
     freeHangmanProgram
-    |> FreeH.Project
     |> runFree IdentityMonad.Instance (Interpreter.nt puzzle)
