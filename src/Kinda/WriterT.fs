@@ -73,3 +73,5 @@ type WriterMonad<'w>(writerMonoid: Monoid<'w>) =
     inherit WriterTMonad<'w, IdentityH>(writerMonoid, IdentityMonad.Instance)
 
     static member MonadInstance monoid = WriterMonad(monoid)
+
+let writer monoid = monad <| WriterMonad<'w>(monoid)

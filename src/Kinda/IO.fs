@@ -38,11 +38,9 @@ module IO =
         wrapIO2 <| ioAction x
 
 type IOMonad () =
-    let readerMonad = ReaderMonad.Instance :> Monad<_>
-
     interface Monad<IOH> with
         member _.Map (f: 'a -> 'b) (ioA: IO<'a>) : IO<'b> = 
-            monad readerMonad {
+            reader {
                 let! a = IOH.project ioA |> getIOAction
                 return f a
             } |> MkIO |> IOH.inject
@@ -51,14 +49,14 @@ type IOMonad () =
             IO.wrapIO <| fun () -> x
 
         member _.Apply (ioFab: IO<'a -> 'b>) (ioA: IO<'a>): IO<'b> =
-            monad readerMonad {
+            reader {
                 let! fab = IOH.project ioFab |> getIOAction
                 let! a = IOH.project ioA |> getIOAction
                 return fab a
             } |> MkIO |> IOH.inject
 
         member _.Bind (ioA: IO<'a>) (f: 'a -> IO<'b>) : IO<'b> = 
-            monad readerMonad {
+            reader {
                 let! a = IOH.project ioA |> getIOAction
                 return! f a |> IOH.project |> getIOAction
             } |> MkIO |> IOH.inject

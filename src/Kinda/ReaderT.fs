@@ -77,3 +77,5 @@ module Reader =
     let run env = ReaderT.run env >> Identity.run
     let fromFunction (f: 'r -> 'a) =
         ReaderT.fromFunction <| fun env -> (IdentityMonad.Instance :> Monad<_>).Pure (f env)
+
+let reader<'r> = monad <| ReaderMonad<'r>()

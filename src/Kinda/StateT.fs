@@ -86,3 +86,5 @@ type StateMonad<'s> () =
     inherit StateTMonad<'s, IdentityH, IdentityMonad>(IdentityMonad.Instance)
     
     static member Instance = StateMonad<'s>()
+
+let state<'s> = monad <| StateMonad<'s>()

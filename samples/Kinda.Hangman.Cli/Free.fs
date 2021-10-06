@@ -6,6 +6,7 @@ open Kinda.Functor
 open Kinda.Monad
 open Kinda.Void
 open Kinda.Identity
+open Kinda.IO
 
 open Kinda.Hangman.Cli.Rules
 
@@ -82,29 +83,34 @@ let rec freeHangmanProgram =
     }
 
 module Interpreter = 
-    //Cheat, because we're not running it in Identity
-    //But F# is not pure
     let mutable private privGame: Game = newGame "X" 0
 
     let interpret hangman =
         match HangmanF.project hangman with
         | WriteLine (msg, a) -> 
-            printfn $"{msg}"
-            Identity.fromA a
+            io {
+                printfn $"{msg}"
+                return a
+            }
         | GuessNextLetter next ->
-            let char = System.Console.ReadKey().KeyChar
-            next char |> Identity.fromA
+            io {
+                let char = System.Console.ReadKey().KeyChar
+                return next char 
+            }
         | GetGame next ->
-            next privGame |> Identity.fromA
+            io { return next privGame }
         | SetGame (game, a) -> 
-            privGame <- game
-            Identity.fromA a
+            io {
+                privGame <- game
+                return a
+            }
 
     let nt game = 
         privGame <- game
-        { new NaturalTransformation<HangmanH, IdentityH> with
+        { new NaturalTransformation<HangmanH, IOH> with
             member _.Transform x = interpret x }
 
 let runFree puzzle = 
     freeHangmanProgram
-    |> runFree IdentityMonad.Instance (Interpreter.nt puzzle)
+    |> runFree IOMonad.Instance (Interpreter.nt puzzle)
+    |> IO.run

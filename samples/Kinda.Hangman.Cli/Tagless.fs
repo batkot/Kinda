@@ -3,6 +3,7 @@ module Kinda.Hangman.Cli.Tagless
 open Kinda.App
 open Kinda.Monad
 open Kinda.StateT
+open Kinda.IO
 open Kinda.Identity
 
 open Kinda.Hangman.Cli.Rules
@@ -33,39 +34,39 @@ let rec taglessHangman<'S,'M when 'S :> Monad<'M> and 'S :> HangmanMonad<'M>>
     }
 
 type HangmanMonadStack () = 
-    let stack = StateMonad<Game>()
+    let stack = StateTMonad<Game, IOH, _>(IOMonad())
     let monad = stack :> Monad<_>
     
-    //Here I'm using the same cheat with Identity
-    //To fake IO
     let writeLineIO line = 
-        printfn $"{line}"
-        Identity.fromA ()
+        io { 
+            printfn $"{line}"
+            return ()
+        }
 
     let getCharIO () =
-        System.Console.ReadKey().KeyChar
-        |> Identity.fromA
+        io { return System.Console.ReadKey().KeyChar }
 
-    interface Monad<App<StateTH<Game>, IdentityH>> with
+    interface Monad<App<StateTH<Game>, IOH>> with
         member _.Map f x = monad.Map f x
         member _.Pure x = monad.Pure x
         member _.Apply fab a = monad.Apply fab a
         member _.Bind ma f = monad.Bind ma f
 
-    interface HangmanMonad<App<StateTH<Game>, IdentityH>> with
+    interface HangmanMonad<App<StateTH<Game>, IOH>> with
         member _.WriteLine (line: string) =
             stack.Lift <| writeLineIO line
 
         member _.GuessNextLetter () = 
             stack.Lift <| getCharIO ()
 
-        member _.GetGame : App<App<StateTH<Game>, IdentityH>, Game> =
+        member _.GetGame : App<App<StateTH<Game>, IOH>, Game> =
             StateT.get stack.InnerMonad
 
-        member _.SetGame (game: Game) : App<App<StateTH<Game>, IdentityH>, unit> =
+        member _.SetGame (game: Game) : App<App<StateTH<Game>, IOH>, unit> =
             StateT.put stack.InnerMonad game
 
 let runTagless puzzle =
     let monad = HangmanMonadStack()
     taglessHangman monad
-    |> State.run puzzle
+    |> StateT.run puzzle
+    |> IO.run
