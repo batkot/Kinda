@@ -92,20 +92,19 @@ module Interpreter =
         match HangmanF.project hangman with
         | WriteLine (msg, a) -> 
             printfn $"{msg}"
-            Id a |> Identity.Inject
+            Identity.fromA a
         | GuessNextLetter next ->
             let char = System.Console.ReadKey().KeyChar
-            next char
-            |> Id |> Identity.Inject
+            next char |> Identity.fromA
         | GetGame next ->
-            next privGame |> Id |> Identity.Inject
+            next privGame |> Identity.fromA
         | SetGame (game, a) -> 
             privGame <- game
-            Id a |> Identity.Inject
+            Identity.fromA a
 
     let nt game = 
         privGame <- game
-        { new NaturalTransformation<HangmanH, Identity> with
+        { new NaturalTransformation<HangmanH, IdentityH> with
             member _.Transform x = interpret x }
 
 let runFree puzzle = 

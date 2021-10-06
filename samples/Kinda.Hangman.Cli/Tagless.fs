@@ -40,30 +40,29 @@ type HangmanMonadStack () =
     //To fake IO
     let writeLineIO line = 
         printfn $"{line}"
-        Id () |> Identity.Inject
+        Identity.fromA ()
 
     let getCharIO () =
         System.Console.ReadKey().KeyChar
-        |> Id
-        |> Identity.Inject
+        |> Identity.fromA
 
-    interface Monad<App<StateTH<Game>, Identity>> with
+    interface Monad<App<StateTH<Game>, IdentityH>> with
         member _.Map f x = monad.Map f x
         member _.Pure x = monad.Pure x
         member _.Apply fab a = monad.Apply fab a
         member _.Bind ma f = monad.Bind ma f
 
-    interface HangmanMonad<App<StateTH<Game>, Identity>> with
+    interface HangmanMonad<App<StateTH<Game>, IdentityH>> with
         member _.WriteLine (line: string) =
             stack.Lift <| writeLineIO line
 
         member _.GuessNextLetter () = 
             stack.Lift <| getCharIO ()
 
-        member _.GetGame : App<'M, Game> =
+        member _.GetGame : App<App<StateTH<Game>, IdentityH>, Game> =
             StateT.get stack.InnerMonad
 
-        member _.SetGame (game: Game) : App<'M, unit> =
+        member _.SetGame (game: Game) : App<App<StateTH<Game>, IdentityH>, unit> =
             StateT.put stack.InnerMonad game
 
 let runTagless puzzle =
