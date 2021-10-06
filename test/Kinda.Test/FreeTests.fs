@@ -100,7 +100,7 @@ let tests =
             } 
 
             let transformToState =
-                { new NaturalTransformation<TestFunctorH, App<StateTH<string list>, Identity>> with 
+                { new NaturalTransformation<TestFunctorH, App<StateTH<string list>, IdentityH>> with 
                     member _.Transform (x: App<TestFunctorH, 'a>) =
                         match TestFunctorH.Project x with
                         | Tell (msg, a) ->

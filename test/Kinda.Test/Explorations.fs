@@ -19,13 +19,13 @@ type ReaderMonadClass<'r,'M> =
     abstract member Ask : App<'M, 'r>
 
 module Generics = 
-    type MyStackTH = App<ReaderTH<string>,App<StateTH<int>, Identity>>
+    type MyStackTH = App<ReaderTH<string>,App<StateTH<int>, IdentityH>>
 
     type MyStack () =
         let stack = ReaderTMonad(StateMonad())
         let monad = stack :> Monad<MyStackTH>
 
-        member _.Run (env: string) (state: int) (x: ReaderT<string, App<StateTH<int>, Identity>, 'a>) : (int * 'a)=
+        member _.Run (env: string) (state: int) (x: ReaderT<string, App<StateTH<int>, IdentityH>, 'a>) : (int * 'a)=
             x
             |> ReaderT.run env 
             |> State.run state
@@ -44,8 +44,7 @@ module Generics =
             member _.Ask = ReaderT.ask<_, string> stack.InnerMonad
 
         member _.Hmm x : App<MyStackTH, 'a> = 
-            Id x 
-            |> Identity.Inject
+            Identity.fromA x
             |> stack.InnerMonad.Lift
             |> stack.Lift 
 

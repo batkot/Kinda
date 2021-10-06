@@ -7,16 +7,12 @@ open Kinda.Test.FunctorTests
 open Kinda.Test.ApplicativeTests
 open Kinda.Test.MonadTests
 
-open Kinda.App
 open Kinda.Identity
-open Kinda.Monad
 
 type IdentityGen = 
     static member Identity () =
-        gen {
-            let! value = Arb.generate<int>
-            return (IdentityMonad.Instance :> Monad<Identity>).Pure value
-        }
+        Arb.generate<int>
+        |> Gen.map Identity.fromA
         |> Arb.fromGen
 
 let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<IdentityGen> ] }

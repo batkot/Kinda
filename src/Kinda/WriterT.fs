@@ -58,12 +58,12 @@ type WriterTMonad<'w, 'M> (writerMonoid: Monoid<'w>, innerMonad: Monad<'M>) =
 
     static member Instance monoid innerMonad = WriterTMonad(monoid, innerMonad) :> WriterTMonad<'w, 'M>
 
-type Writer<'w, 'a> = WriterT<'w, Identity, 'a>
+type Writer<'w, 'a> = WriterT<'w, IdentityH, 'a>
 
 module Writer =
     let tell (w: 'w) = WriterT.tell IdentityMonad.Instance w
 
 type WriterMonad<'w>(writerMonoid: Monoid<'w>) = 
-    inherit WriterTMonad<'w, Identity>(writerMonoid, IdentityMonad.Instance)
+    inherit WriterTMonad<'w, IdentityH>(writerMonoid, IdentityMonad.Instance)
 
-    static member MonadInstance monoid = WriterMonad(monoid) :> Monad<WriterTH<'w, Identity>>
+    static member MonadInstance monoid = WriterMonad(monoid) :> Monad<WriterTH<'w, IdentityH>>

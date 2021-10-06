@@ -73,16 +73,16 @@ type StateTMonad<'s, 'M, 'I when 'I :> Monad<'M>> (innerMonad: 'I) =
 
     static member Instance<'s> monad = StateTMonad(monad) :> Monad<App<StateTH<'s>,'M>>
 
-type State<'s,'a> = StateT<'s, Identity, 'a>
+type State<'s,'a> = StateT<'s, IdentityH, 'a>
 
 module State =
-    let get<'s> = StateT.get<Identity, 's> IdentityMonad.Instance 
+    let get<'s> = StateT.get<IdentityH, 's> IdentityMonad.Instance 
 
     let put (state: 'state) = StateT.put IdentityMonad.Instance state
 
-    let run (state: 'state) = StateT.run state >> Identity.Run
+    let run (state: 'state) = StateT.run state >> Identity.run
 
 type StateMonad<'s> () = 
-    inherit StateTMonad<'s, Identity, IdentityMonad>(IdentityMonad.Instance)
+    inherit StateTMonad<'s, IdentityH, IdentityMonad>(IdentityMonad.Instance)
     
-    static member Instance = StateMonad<'s>() :> Monad<App<StateTH<'s>,Identity>>
+    static member Instance = StateMonad<'s>()

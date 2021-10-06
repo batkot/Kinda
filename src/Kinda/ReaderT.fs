@@ -65,13 +65,13 @@ type ReaderTMonad<'r, 'M, 'I when 'I :> Monad<'M>> (innerMonad: 'I) =
 
     static member Instance innerMonad = ReaderTMonad(innerMonad) :> ReaderTMonad<'r,'M, 'I>
 
-type Reader<'r,'a> = ReaderT<'r, Identity, 'a>
+type Reader<'r,'a> = ReaderT<'r, IdentityH, 'a>
 
 type ReaderMonad<'r> () =
-    inherit ReaderTMonad<'r, Identity, IdentityMonad>(IdentityMonad.Instance)
+    inherit ReaderTMonad<'r, IdentityH, IdentityMonad>(IdentityMonad.Instance)
 
     static member Instance = ReaderMonad() :> ReaderTMonad<'r,_, _>
 
 module Reader = 
     let ask<'r> = ReaderT.ask IdentityMonad.Instance : Reader<'r, 'r>
-    let run env = ReaderT.run env >> Identity.Run
+    let run env = ReaderT.run env >> Identity.run

@@ -15,9 +15,9 @@ open Kinda.Identity
 open Kinda.StateT
 
 let stateEq state = 
-    { new Eq<App<StateTH<'s>, Identity>> with
+    { new Eq<App<StateTH<'s>, IdentityH>> with
         member _.AreEqual x y =
-            let run = StateT.run state >> Identity.Run
+            let run = State.run state
             run x = run y
     }
 
@@ -63,7 +63,7 @@ let tests =
         testList "Should return computed value based on state" [
             let stateAction (f: 's -> 'x) = 
                 State.get<'s> 
-                |> StateMonad.Instance.Map f
+                |> (StateMonad.Instance :> Monad<_>).Map f
 
             testProperty "Int" <|
                 fun (initState: int) (added: int) -> 

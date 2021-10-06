@@ -15,7 +15,7 @@ open Kinda.Test.ApplicativeTests
 open Kinda.Test.MonadTests
 
 let readerEq env = 
-    { new Eq<App<ReaderTH<'r>, Identity>> with
+    { new Eq<App<ReaderTH<'r>, IdentityH>> with
         member _.AreEqual x y = 
             let run = ReaderT.run env
             run x = run y
