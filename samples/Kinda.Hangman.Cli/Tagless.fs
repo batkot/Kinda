@@ -21,13 +21,13 @@ let rec taglessHangman<'S,'M when 'S :> Monad<'M> and 'S :> HangmanMonad<'M>>
         let! letter = m.GuessNextLetter ()
         do! m.WriteLine ""
         match checkLetter letter puzzle with
-        | Ok newPuzzle -> 
+        | Continue newPuzzle -> 
             do! m.SetGame newPuzzle
             return! taglessHangman m
-        | Error (Won _) ->
+        | Won ->
             do! m.WriteLine "You won!"
             return ()
-        | Error (Lost _) ->
+        | Lost ->
             do! m.WriteLine "You lost!"
             return ()
     }

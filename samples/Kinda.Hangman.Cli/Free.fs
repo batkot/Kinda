@@ -70,13 +70,13 @@ let rec freeHangmanProgram =
         let! letter = HangmanFree.guessNextLetter ()
         do! HangmanFree.writeLine ""
         match checkLetter letter puzzle with
-        | Ok newPuzzle -> 
+        | Continue newPuzzle -> 
             do! HangmanFree.setGame newPuzzle
             return! freeHangmanProgram
-        | Error (Won _) ->
+        | Won ->
             do! HangmanFree.writeLine "You won!"
             return ()
-        | Error (Lost _) ->
+        | Lost ->
             do! HangmanFree.writeLine "You lost!"
             return ()
     }

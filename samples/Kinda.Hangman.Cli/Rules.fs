@@ -13,9 +13,10 @@ type Game =
               Chances : int
             }
 
-type GameResult 
-    = Won of string
-    | Lost of string
+type CheckResult 
+    = Continue of Game
+    | Won
+    | Lost
 
 let newGame (puzzle: string) (chances: int) = 
     { Puzzle = puzzle.ToUpper() |> Seq.map Hidden |> List.ofSeq
@@ -30,7 +31,7 @@ let showPuzzle ({ Puzzle = puzzle }) =
     List.map showLetter puzzle
     |> String.concat " "
 
-let checkLetter (letter: char) (game: Game): Result<Game, GameResult> =
+let checkLetter (letter: char) (game: Game): CheckResult =
     let mutable matchedLetter = 1
     let flipLetter x = function
         | Hidden y when x = y -> 
@@ -48,6 +49,6 @@ let checkLetter (letter: char) (game: Game): Result<Game, GameResult> =
     let solved = List.forall (isHidden >> not) newGame.Puzzle 
     let outOfChances = newGame.Chances < 1
     match solved, outOfChances with
-    | true, _ -> Error (Won "")
-    | _, true -> Error (Lost "")
-    | _, _ -> Ok newGame
+    | true, _ -> Won
+    | _, true -> Lost
+    | _, _ -> Continue newGame
