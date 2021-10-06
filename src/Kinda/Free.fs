@@ -61,8 +61,7 @@ type NaturalTransformation<'F,'M> =
     abstract Transform : App<'F, 'a> -> App<'M, 'a>
 
 let liftF (functor: Functor<'F>) (f: App<'F,'a>): Free<'F,'a> =
-    let monad = FreeMonad(functor) :> Monad<_>
-    functor.Map (monad.Pure >> Free.project) f 
+    functor.Map Pure f 
     |> Free
     |> Free.inject
 

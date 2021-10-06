@@ -14,7 +14,7 @@ type private InnerWriterT<'w, 'M, 'a> = MkWriterT of App<'M, 'a * 'w>
 let private runWriterT (MkWriterT x) = x
 let private tell (innerMonad: Monad<'M>) (writer: 'w) = MkWriterT <| innerMonad.Pure ((), writer)
 
-type WriterTH<'w> = WTH of Void
+type WriterTH<'w> = private WTH of Void
 
 type WriterT<'w,'M,'a> = App<App<WriterTH<'w>, 'M>, 'a>
 

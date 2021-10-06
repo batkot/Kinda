@@ -76,7 +76,7 @@ type StateTMonad<'s, 'M, 'I when 'I :> Monad<'M>> (innerMonad: 'I) =
 type State<'s,'a> = StateT<'s, IdentityH, 'a>
 
 module State =
-    let get<'s> = StateT.get<IdentityH, 's> IdentityMonad.Instance 
+    let get<'s> = StateT.get<_, 's> IdentityMonad.Instance 
 
     let put (state: 'state) = StateT.put IdentityMonad.Instance state
 
