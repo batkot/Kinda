@@ -21,7 +21,7 @@ type WriterGen =
             let! writerContent = Arb.generate<string list>
             let w = 
                 writerContent
-                |> List.map (fun x -> Writer.tell [x] |> WriterTH.Inject)
+                |> List.map (fun x -> Writer.tell [x])
                 |> List.fold (fun a b -> 
                     monad writerMonad { 
                         do! a

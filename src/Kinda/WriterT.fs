@@ -3,23 +3,32 @@ module Kinda.WriterT
 open Kinda.App
 open Kinda.Identity
 open Kinda.Monad
+open Kinda.Void
 
 type Monoid<'m> = 
     abstract Mempty: 'm
     abstract Combine: 'm -> 'm -> 'm
 
-type WriterT<'w, 'M, 'a> = WriterT of App<'M, 'a * 'w>
+type private InnerWriterT<'w, 'M, 'a> = MkWriterT of App<'M, 'a * 'w>
 
-let runWriterT (WriterT x) = x
+let private runWriterT (MkWriterT x) = x
+let private tell (innerMonad: Monad<'M>) (writer: 'w) = MkWriterT <| innerMonad.Pure ((), writer)
+
+type WriterTH<'w> = WTH of Void
+
+type WriterT<'w,'M,'a> = App<App<WriterTH<'w>, 'M>, 'a>
 
 module WriterT = 
-    let tell (innerMonad: Monad<'M>) (writer: 'w) = WriterT <| innerMonad.Pure ((), writer)
-
-type WriterTH<'w, 'M> = 
-    static member Inject (writer: WriterT<'w, 'M,'a>) : App<WriterTH<'w,'M>, 'a> =
+    let private inject (writer: InnerWriterT<'w, 'M,'a>) : WriterT<'w,'M, 'a> =
         create writer
-    static member Project (app: App<WriterTH<'w,'M>,'a>) : WriterT<'w, 'M, 'a> = 
-        unwrap app :?> _
+    let private project (writer: WriterT<'w, 'M, 'a>) : InnerWriterT<'w, 'M, 'a> =
+        unwrap writer :?> _
+    let run (writer: WriterT<'w, 'M, 'a>) =
+        project writer |> runWriterT
+    let tell (innerMonad: Monad<'M>) (w: 'w) : WriterT<'w,'M, unit> =
+        tell innerMonad w |> inject
+    let fromApp (app: App<'M, 'a * 'w>) =
+        MkWriterT app |> inject
 
 //Tmp
 type ListMonoid<'a> () =
@@ -28,33 +37,30 @@ type ListMonoid<'a> () =
         member _.Combine x y = x @ y
 
 type WriterTMonad<'w, 'M> (writerMonoid: Monoid<'w>, innerMonad: Monad<'M>) =
-    interface Monad<WriterTH<'w,'M>> with
-        member _.Map (f : 'a -> 'b) (x: App<WriterTH<'w, 'M>, 'a>) : App<WriterTH<'w,'M>,'b> =
-            WriterTH.Project x 
-            |> runWriterT
+    interface Monad<App<WriterTH<'w>,'M>> with
+        member _.Map (f : 'a -> 'b) (x: WriterT<'w, 'M, 'a>) : WriterT<'w,'M,'b> =
+            WriterT.run x
             |> innerMonad.Map (fun (a, w) -> (f a , w))
-            |> WriterT
-            |> WriterTH.Inject
+            |> WriterT.fromApp
 
-        member _.Pure (x : 'a) : App<WriterTH<'w,'M>, 'a> = 
+        member _.Pure (x : 'a) : WriterT<'w,'M, 'a> = 
             innerMonad.Pure (x, writerMonoid.Mempty)
-            |> WriterT 
-            |> WriterTH.Inject
+            |> WriterT.fromApp
 
-        member _.Apply (fab: App<WriterTH<'w,'M>, 'a -> 'b>) (a: App<WriterTH<'w,'M>,'a>) : App<WriterTH<'w,'M>, 'b> = 
+        member _.Apply (fab: WriterT<'w,'M, 'a -> 'b>) (a: WriterT<'w,'M,'a>) : WriterT<'w,'M, 'b> = 
             monad innerMonad {
-                let! (f, w1) = fab |> WriterTH.Project |> runWriterT
-                let! (a, w2) = a |> WriterTH.Project |> runWriterT
+                let! (f, w1) = fab |> WriterT.run
+                let! (a, w2) = a |> WriterT.run
 
                 return (f a, writerMonoid.Combine w1 w2)
-            } |> WriterT |> WriterTH.Inject
+            } |> WriterT.fromApp
 
-        member _.Bind (ma: App<WriterTH<'w,'M>, 'a>) (f : 'a -> App<WriterTH<'w, 'M>, 'b>) =
+        member _.Bind (ma: WriterT<'w,'M, 'a>) (f : 'a -> WriterT<'w, 'M, 'b>) =
             monad innerMonad {
-                let! (a, w1) = ma |> WriterTH.Project |> runWriterT
-                let! (b, w2) = f a |> WriterTH.Project |> runWriterT
+                let! (a, w1) = ma |> WriterT.run
+                let! (b, w2) = f a |> WriterT.run
                 return (b, writerMonoid.Combine w1 w2)
-            } |> WriterT |> WriterTH.Inject
+            } |> WriterT.fromApp
 
     static member Instance monoid innerMonad = WriterTMonad(monoid, innerMonad) :> WriterTMonad<'w, 'M>
 
@@ -66,4 +72,4 @@ module Writer =
 type WriterMonad<'w>(writerMonoid: Monoid<'w>) = 
     inherit WriterTMonad<'w, IdentityH>(writerMonoid, IdentityMonad.Instance)
 
-    static member MonadInstance monoid = WriterMonad(monoid) :> Monad<WriterTH<'w, IdentityH>>
+    static member MonadInstance monoid = WriterMonad(monoid)
