@@ -3,12 +3,13 @@ module Kinda.ToDo.Cli.Program
 open Kinda.Hangman.Cli.Rules
 open Kinda.Hangman.Cli.Tagless
 open Kinda.Hangman.Cli.Free
-open System
+open Kinda.Hangman.Cli.Transformers
 open CommandLine
 
 type Mode
     = FreeMonad = 0
     | Tagless = 1
+    | Transformers = 2
 
 type Options = 
     { [<Option(Default = Mode.FreeMonad, HelpText = "Program version to run (FreeMonad|Tagless)")>] Mode : Mode
@@ -21,6 +22,7 @@ let run options =
     match options.Mode with
     | Mode.FreeMonad -> runFree game |> ignore
     | Mode.Tagless -> runTagless game |> ignore
+    | Mode.Transformers -> runTransformers game |> ignore
     | _ -> failwith ":("
 
 [<EntryPoint>]

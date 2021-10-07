@@ -4,9 +4,9 @@ open Kinda.App
 open Kinda.Monad
 open Kinda.StateT
 open Kinda.IO
-open Kinda.Identity
 
 open Kinda.Hangman.Cli.Rules
+open Kinda.Hangman.Cli.IO
 
 type HangmanMonad<'M> =
     abstract WriteLine: string -> App<'M, unit>
@@ -36,15 +36,6 @@ let rec taglessHangman<'S,'M when 'S :> Monad<'M> and 'S :> HangmanMonad<'M>>
 type HangmanMonadStack () = 
     let stack = StateTMonad<Game, IOH, _>(IOMonad())
     let monad = stack :> Monad<_>
-    
-    let writeLineIO line = 
-        io { 
-            printfn $"{line}"
-            return ()
-        }
-
-    let getCharIO () =
-        io { return System.Console.ReadKey().KeyChar }
 
     interface Monad<App<StateTH<Game>, IOH>> with
         member _.Map f x = monad.Map f x

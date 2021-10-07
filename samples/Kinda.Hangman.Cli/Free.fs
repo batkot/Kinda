@@ -5,10 +5,10 @@ open Kinda.Free
 open Kinda.Functor
 open Kinda.Monad
 open Kinda.Void
-open Kinda.Identity
 open Kinda.IO
 
 open Kinda.Hangman.Cli.Rules
+open Kinda.Hangman.Cli.IO
 
 type HangmanF<'a>
     = WriteLine of string * 'a
@@ -89,12 +89,12 @@ module Interpreter =
         match HangmanF.project hangman with
         | WriteLine (msg, a) -> 
             io {
-                printfn $"{msg}"
+                do! writeLineIO msg
                 return a
             }
         | GuessNextLetter next ->
             io {
-                let char = System.Console.ReadKey().KeyChar
+                let! char = getCharIO ()
                 return next char 
             }
         | GetGame next ->

@@ -7,8 +7,10 @@
 
   <ItemGroup>
     <Compile Include="Rules.fs" />
+    <Compile Include="IO.fs" />
     <Compile Include="Free.fs" />
     <Compile Include="Tagless.fs" />
+    <Compile Include="Transformers.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
