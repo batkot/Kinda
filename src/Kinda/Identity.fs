@@ -40,3 +40,4 @@ type IdentityMonad () =
 
     static member Instance = IdentityMonad ()
 
+let identity = monad <| IdentityMonad ()

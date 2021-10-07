@@ -65,6 +65,8 @@ type ReaderTMonad<'r, 'M, 'I when 'I :> Monad<'M>> (innerMonad: 'I) =
 
     static member Instance innerMonad = ReaderTMonad(innerMonad) :> ReaderTMonad<'r,'M, 'I>
 
+let readerT (inner: MonadBuilder<'M, 'I>) = monadT <|  ReaderTMonad(inner.Monad)
+
 type Reader<'r,'a> = ReaderT<'r, IdentityH, 'a>
 
 type ReaderMonad<'r> () =

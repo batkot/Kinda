@@ -73,6 +73,8 @@ type StateTMonad<'s, 'M, 'I when 'I :> Monad<'M>> (innerMonad: 'I) =
 
     static member Instance<'s> monad = StateTMonad(monad) :> Monad<App<StateTH<'s>,'M>>
 
+let stateT (inner: MonadBuilder<'M, 'S>) = monadT <| StateTMonad (inner.Monad)
+
 type State<'s,'a> = StateT<'s, IdentityH, 'a>
 
 module State =

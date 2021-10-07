@@ -18,6 +18,7 @@ type ReaderMonadClass<'r,'M> =
     inherit Monad<'M>
     abstract member Ask : App<'M, 'r>
 
+
 module Generics = 
     type MyStackTH = App<ReaderTH<string>,App<StateTH<int>, IdentityH>>
 
@@ -58,6 +59,43 @@ module Generics =
             return counter + String.length text
         }
 
+    let hmm (m: ReaderTMonad<string, _, _>) x =
+        let stack = monad m |> stateT
+
+        stack {
+            let! env = stack.Lift <| ReaderT.ask m.InnerMonad
+            return x
+        }
+
+    let qwe =
+        let stack = reader |> stateT |> readerT 
+
+        stack {
+            let! x = ReaderT.ask stack.Monad.InnerMonad
+
+            let! y = 
+                StateT.get stack.Monad.InnerMonad.InnerMonad
+                |> stack.Lift 
+
+            let! z =
+                Reader.ask
+                |> stack.Monad.InnerMonad.Lift
+                |> stack.Lift
+
+            do! StateT.put stack.Monad.InnerMonad.InnerMonad (x - y)
+                |> stack.Lift
+
+            return x + y + (String.length z)
+        }
+
+    let yhm (m: MonadTransBuilder<_, App<ReaderTH<int>, _>, ReaderTMonad<string, _, _>>) x = 
+        let stack = stateT m 
+        stack {
+            let! env = stack.Lift <| ReaderT.ask m.Monad.InnerMonad
+            let! state = StateT.get m.Monad
+            return env + state + x
+        }
+
     let addToState<'S, 'M when 'S :> StateMonadClass<int, 'M>> (m: 'S) x = 
             monad m {
                 let! state = m.Get
@@ -81,16 +119,36 @@ module Generics =
     [<Tests>]
     let tests = 
         testList "Generic param based type classess"
-            [ testCase "X" <| fun () -> 
-                let (state, returned) = 
-                    monad myStack {
-                        let! result = addToState myStack 10
-                        return! addFromReader myStack result
-                    }
-                    |> myStack.Run "Test" 10
+            // [ testCase "X" <| fun () -> 
+            //     let (state, returned) = 
+            //         monad myStack {
+            //             let! result = addToState myStack 10
+            //             return! addFromReader myStack result
+            //         }
+            //         |> myStack.Run "Test" 10
 
-                Expect.equal state 20 "State should be maintained"
-                Expect.equal returned "Test-20" "Reader should be pushed"
+            //     Expect.equal state 20 "State should be maintained"
+            //     Expect.equal returned "Test-20" "Reader should be pushed"
+             
+            [
+            //   testCase "Y" <| fun () -> 
+            //     let (_, (_, res))= 
+            //         yhm (stateT reader) 10
+            //         |> StateT.run 20
+            //         |> StateT.run 10000
+            //         |> Reader.run 30
+
+            //     Expect.equal res 60 "?"
+
+              testCase "Z" <| fun () -> 
+                let (st, res) =
+                    qwe 
+                    |> ReaderT.run 15
+                    |> StateT.run 10
+                    |> Reader.run "ABCDE"
+
+                Expect.equal res 30 "!"
+                Expect.equal 5 st "!"
             ]
 
 module Parameters =
