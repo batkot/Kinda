@@ -2,6 +2,7 @@ module Kinda.Hangman.Cli.Transformers
 
 open Kinda.StateT
 open Kinda.IO
+open Kinda.Monad
 
 open Kinda.Hangman.Cli.IO
 open Kinda.Hangman.Cli.Rules
@@ -10,20 +11,20 @@ let monadStack = stateT io
 
 let rec transformerHangman =
     monadStack {
-        let! puzzle = StateT.get monadStack.Monad.InnerMonad
-        do! monadStack.Lift <| writeLineIO $"Puzzle is {showPuzzle puzzle}"
-        let! letter = monadStack.Lift <| getCharIO ()
-        do! monadStack.Lift <| writeLineIO ""
+        let! puzzle = StateT.get <| MonadTrans.innerMonad monadStack
+        do! MonadTrans.lift monadStack <| writeLineIO $"Puzzle is {showPuzzle puzzle}"
+        let! letter = MonadTrans.lift monadStack <| getCharIO ()
+        do! MonadTrans.lift monadStack <| writeLineIO ""
 
         match checkLetter letter puzzle with
         | Continue newPuzzle -> 
-            do! StateT.put monadStack.Monad.InnerMonad newPuzzle
+            do! StateT.put (MonadTrans.innerMonad monadStack) newPuzzle
             return! transformerHangman
         | Won ->
-            do! monadStack.Lift <| writeLineIO $"You won!"
+            do! MonadTrans.lift monadStack <| writeLineIO $"You won!"
             return ()
         | Lost ->
-            do! monadStack.Lift <| writeLineIO $"You lost!"
+            do! MonadTrans.lift monadStack <| writeLineIO $"You lost!"
             return ()
     }
 

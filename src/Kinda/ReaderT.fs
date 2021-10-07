@@ -30,10 +30,7 @@ module ReaderT =
         MkReaderT readerF |> inject
 
 
-type ReaderTMonad<'r, 'M, 'I when 'I :> Monad<'M>> (innerMonad: 'I) =
-
-    member _.InnerMonad = innerMonad
-    member self.Lift x = (self :> MonadTrans<_,_>).Lift x
+type ReaderTMonad<'r, 'M, 'MI when 'MI :> Monad<'M>> (innerMonad: 'MI) =
 
     interface Monad<App<ReaderTH<'r>,'M>> with
         member _.Map (f: 'a -> 'b) (x: ReaderT<'r,'M,'a>) : ReaderT<'r,'M,'b> =
@@ -59,9 +56,11 @@ type ReaderTMonad<'r, 'M, 'I when 'I :> Monad<'M>> (innerMonad: 'I) =
                     return! f a |> ReaderT.run env
                 }
 
-    interface MonadTrans<ReaderTH<'r>,'M> with
+    interface MonadTrans<ReaderTH<'r>,'M, 'MI> with
         member _.Lift (ma: App<'M,'a>): ReaderT<'r,'M,'a> = 
             ReaderT.fromFunction <| fun _ -> ma
+
+        member _.InnerMonad = innerMonad
 
     static member Instance innerMonad = ReaderTMonad(innerMonad) :> ReaderTMonad<'r,'M, 'I>
 

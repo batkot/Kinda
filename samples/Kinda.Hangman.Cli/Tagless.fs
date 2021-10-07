@@ -45,16 +45,16 @@ type HangmanMonadStack () =
 
     interface HangmanMonad<App<StateTH<Game>, IOH>> with
         member _.WriteLine (line: string) =
-            stack.Lift <| writeLineIO line
+            MonadTrans.lift stack <| writeLineIO line
 
         member _.GuessNextLetter () = 
-            stack.Lift <| getCharIO ()
+            MonadTrans.lift stack <| getCharIO ()
 
         member _.GetGame : App<App<StateTH<Game>, IOH>, Game> =
-            StateT.get stack.InnerMonad
+            StateT.get <| MonadTrans.innerMonad stack
 
         member _.SetGame (game: Game) : App<App<StateTH<Game>, IOH>, unit> =
-            StateT.put stack.InnerMonad game
+            StateT.put (MonadTrans.innerMonad stack) game
 
 let runTagless puzzle =
     let monad = HangmanMonadStack()

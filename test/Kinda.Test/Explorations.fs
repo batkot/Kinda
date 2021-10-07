@@ -38,24 +38,23 @@ module Generics =
             member _.Bind ma f = monad.Bind ma f
 
         interface StateMonadClass<int, MyStackTH> with
-            member _.Get = stack.Lift <| StateT.get stack.InnerMonad.InnerMonad
-            member _.Put x = stack.Lift <| StateT.put stack.InnerMonad.InnerMonad x
+            member _.Get = MonadTrans.lift stack <| StateT.get (MonadTrans.innerMonad2 stack)
+            member _.Put x = MonadTrans.lift stack <| StateT.put (MonadTrans.innerMonad2 stack) x
 
         interface ReaderMonadClass<string, MyStackTH> with
-            member _.Ask = ReaderT.ask<_, string> stack.InnerMonad
+            member _.Ask = ReaderT.ask<_, string> <| MonadTrans.innerMonad stack
 
         member _.Hmm x : App<MyStackTH, 'a> = 
             Identity.fromA x
-            |> stack.InnerMonad.Lift
-            |> stack.Lift 
+            |> MonadTrans.lift2 stack 
 
 
     let myStack = MyStack()
 
     let bar (m: StateTMonad<int,_, ReaderTMonad<string, _, _>>) : StateT<int, _, int>=
         monad m {
-            let! counter = StateT.get m.InnerMonad
-            let! text = m.Lift <| ReaderT.ask m.InnerMonad.InnerMonad
+            let! counter = StateT.get <| MonadTrans.innerMonad m
+            let! text = MonadTrans.lift m <| ReaderT.ask (MonadTrans.innerMonad2 m)
             return counter + String.length text
         }
 
@@ -63,7 +62,7 @@ module Generics =
         let stack = monad m |> stateT
 
         stack {
-            let! env = stack.Lift <| ReaderT.ask m.InnerMonad
+            let! env = MonadTrans.lift stack <| ReaderT.ask (MonadTrans.innerMonad m)
             return x
         }
 
@@ -71,28 +70,25 @@ module Generics =
         let stack = reader |> stateT |> readerT 
 
         stack {
-            let! x = ReaderT.ask stack.Monad.InnerMonad
+            let! x = ReaderT.ask <| MonadTrans.innerMonad stack
 
             let! y = 
-                StateT.get stack.Monad.InnerMonad.InnerMonad
-                |> stack.Lift 
+                StateT.get (MonadTrans.innerMonad2 stack)
+                |> MonadTrans.lift stack
 
-            let! z =
-                Reader.ask
-                |> stack.Monad.InnerMonad.Lift
-                |> stack.Lift
+            let! z = MonadTrans.lift2 stack <| Reader.ask
 
-            do! StateT.put stack.Monad.InnerMonad.InnerMonad (x - y)
-                |> stack.Lift
+            do! StateT.put (MonadTrans.innerMonad2 stack) (x - y)
+                |> MonadTrans.lift stack
 
             return x + y + (String.length z)
         }
 
-    let yhm (m: MonadTransBuilder<_, App<ReaderTH<int>, _>, ReaderTMonad<string, _, _>>) x = 
+    let yhm (m: MonadTransBuilder<_, App<ReaderTH<int>, _>, ReaderTMonad<string, _, _>, _>) x = 
         let stack = stateT m 
         stack {
-            let! env = stack.Lift <| ReaderT.ask m.Monad.InnerMonad
-            let! state = StateT.get m.Monad
+            let! env = MonadTrans.lift stack <| ReaderT.ask (MonadTrans.innerMonad m)
+            let! state = StateT.get m
             return env + state + x
         }
 
