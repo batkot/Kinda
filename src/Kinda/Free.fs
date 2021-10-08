@@ -13,7 +13,7 @@ type FreeH<'F> = private FH of Void
 
 type Free<'F,'a> = App<FreeH<'F>, 'a>
 
-module Free =
+module private Free =
     let inject (free: FreeF<'F,'a>) : Free<'F,'a> =
         create free
     let project (free: Free<'F,'a>) : FreeF<'F,'a> = 
@@ -21,7 +21,7 @@ module Free =
 
 type FreeMonad<'F> (innerFunctor: Functor<'F>) =
     interface Monad<FreeH<'F>> with
-        member _.Map (f : 'a -> 'b) (x: App<FreeH<'F>, 'a>) : App<FreeH<'F>,'b> =
+        member _.Map (f : 'a -> 'b) (x: Free<'F, 'a>) : Free<'F,'b> =
             let rec map f x =
                 let x =
                     match Free.project x with
@@ -32,10 +32,10 @@ type FreeMonad<'F> (innerFunctor: Functor<'F>) =
 
             map f x
 
-        member _.Pure (x : 'a) : App<FreeH<'F>, 'a> = 
+        member _.Pure (x : 'a) : Free<'F, 'a> = 
             Pure x |> Free.inject
 
-        member self.Apply (fab: App<FreeH<'F>, 'a -> 'b>) (a: App<FreeH<'F>,'a>) : App<FreeH<'F>, 'b> = 
+        member self.Apply (fab: Free<'F, 'a -> 'b>) (a: Free<'F,'a>) : Free<'F, 'b> = 
             let rec apply fab a = 
                 match Free.project fab with
                 | Pure f -> (self :> Monad<FreeH<'F>>).Map f a
@@ -46,7 +46,7 @@ type FreeMonad<'F> (innerFunctor: Functor<'F>) =
 
             apply fab a
 
-        member _.Bind (ma: App<FreeH<'F>, 'a>) (f : 'a -> App<FreeH<'F>, 'b>) =
+        member _.Bind (ma: Free<'F, 'a>) (f : 'a -> Free<'F, 'b>) =
             let rec bind ma f =
                 match Free.project ma with
                 | Pure a -> f a

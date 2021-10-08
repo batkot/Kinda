@@ -11,7 +11,8 @@ let private runReaderT (env: 'r) (MkReaderT reader) = reader env
 let private ask (innerMonad: Monad<'M>) = MkReaderT <| innerMonad.Pure 
 
 type ReaderTH<'r> = private RTH of Void
-type ReaderT<'r,'M, 'a> = App<App<ReaderTH<'r>, 'M>, 'a>
+type ReaderTH<'r,'M> = App<ReaderTH<'r>, 'M>
+type ReaderT<'r,'M, 'a> = App<ReaderTH<'r, 'M>, 'a>
 
 module ReaderT =
     let private inject (reader: InnerReaderT<'r,'M,'a>) : ReaderT<'r,'M,'a> = 
@@ -32,7 +33,7 @@ module ReaderT =
 
 type ReaderTMonad<'r, 'M, 'MI when 'MI :> Monad<'M>> (innerMonad: 'MI) =
 
-    interface Monad<App<ReaderTH<'r>,'M>> with
+    interface Monad<ReaderTH<'r,'M>> with
         member _.Map (f: 'a -> 'b) (x: ReaderT<'r,'M,'a>) : ReaderT<'r,'M,'b> =
             ReaderT.fromFunction <| fun env -> 
                 ReaderT.run env x

@@ -16,8 +16,9 @@ let private put (monad: Monad<'M>) (state: 's): InnerStateT<'s, 'M, unit> =
     MkStateT <| fun _ -> monad.Pure (state, ())
 
 type StateTH<'s> = private STH of Void
+type StateTH<'s, 'M> = App<StateTH<'s>, 'M>
 
-type StateT<'s,'M,'a> = App<App<StateTH<'s>, 'M>, 'a>
+type StateT<'s,'M,'a> = App<StateTH<'s, 'M>, 'a>
 
 module StateT =
     let private inject (state: InnerStateT<'s,'M,'a>) : StateT<'s,'M,'a> = 
@@ -26,20 +27,20 @@ module StateT =
     let private project (app: StateT<'s,'M,'a>) : InnerStateT<'s,'M,'a> =
         unwrap app :?> _
 
-    let get (monad: Monad<'M>): App<App<StateTH<'s>, 'M>, 's> =
+    let get (monad: Monad<'M>): StateT<'s,'M,'s> =
         get monad |> inject
 
-    let put (monad: Monad<'M>) (state: 's): App<App<StateTH<'s>, 'M>, unit> =
+    let put (monad: Monad<'M>) (state: 's): StateT<'s,'M, unit> =
         put monad state |> inject
 
-    let run (state: 's) (x: App<App<StateTH<'s>, 'M>, 'a>) = project x |> runStateT state
+    let run (state: 's) (x: StateT<'s,'M,'a>) = project x |> runStateT state
 
     let fromFunction (stateT: 's -> App<'M, 's * 'a>) : StateT<'s,'M,'a>=
         MkStateT stateT |> inject
 
 type StateTMonad<'s, 'M, 'MI when 'MI :> Monad<'M>> (innerMonad: 'MI) = 
 
-    interface Monad<App<StateTH<'s>, 'M>> with
+    interface Monad<StateTH<'s, 'M>> with
         member _.Map (f : 'a -> 'b) (x: StateT<'s,'M,'a>) : StateT<'s,'M, 'b> =
             StateT.fromFunction <| fun state ->
                 StateT.run state x
@@ -70,7 +71,7 @@ type StateTMonad<'s, 'M, 'MI when 'MI :> Monad<'M>> (innerMonad: 'MI) =
 
         member _.InnerMonad = innerMonad
 
-    static member Instance<'s> monad = StateTMonad(monad) :> Monad<App<StateTH<'s>,'M>>
+    static member Instance<'s> monad = StateTMonad(monad) :> Monad<StateTH<'s,'M>>
 
 let stateT (inner: MonadBuilder<'M, 'S>) = monadT <| StateTMonad (inner.Monad)
 

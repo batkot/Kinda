@@ -2,31 +2,40 @@ module Kinda.List
 
 open Kinda.App
 open Kinda.Monad
+open Kinda.Void
 
-type List = 
-    static member Inject (list: 'a list) : App<List, 'a> =
+type ListH = private LH of Void
+
+type List<'a> = App<ListH, 'a>
+
+module private ListH =
+    let inject (list: 'a list) : List<'a> =
         create list
-    static member Project (app: App<List, 'a>) : 'a list = 
+    let project (app: List<'a>) : 'a list = 
         unwrap app :?> _
 
+module List =
+    let fromList = ListH.inject
+
 type ListMonad () =
-    interface Monad<List> with
-        member _.Map (f : 'a -> 'b) (x: App<List, 'a>) : App<List,'b> =
-            List.Project x |> List.map f |> List.Inject
+    interface Monad<ListH> with
+        member _.Map (f : 'a -> 'b) (x: List<'a>) : List<'b> =
+            ListH.project x |> List.map f |> ListH.inject
 
-        member _.Pure (x : 'a) : App<List, 'a> = 
-            List.Inject [x]
+        member _.Pure (x : 'a) : List<'a> = 
+            ListH.inject [x]
 
-        member _.Apply (fab: App<List, 'a -> 'b>) (a: App<List,'a>) : App<List, 'b> = 
-            let fabList = List.Project fab
-            let aList = List.Project a
+        member _.Apply (fab: List<'a -> 'b>) (a: List<'a>) : List<'b> = 
+            let fabList = ListH.project fab
+            let aList = ListH.project a
             let bList = List.collect (fun f -> List.map f aList) fabList
-            List.Inject bList
+            ListH.inject bList
 
-        member _.Bind (ma: App<List, 'a>) (f : 'a -> App<List, 'b>) =
-            let aList = List.Project ma
-            let bList = List.collect (f >> List.Project) aList 
-            List.Inject bList
+        member _.Bind (ma: List<'a>) (f : 'a -> List<'b>) =
+            let aList = ListH.project ma
+            let bList = List.collect (f >> ListH.project) aList 
+            ListH.inject bList
 
-    static member Instance = ListMonad () :> Monad<List>
+    static member Instance = ListMonad () :> Monad<ListH>
 
+let list = monad <| ListMonad ()

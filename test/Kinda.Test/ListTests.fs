@@ -11,10 +11,8 @@ open Kinda.List
 
 type ListGen = 
     static member List () =
-        gen {
-            let! value = Arb.generate<int list>
-            return List.Inject value
-        }
+        Arb.generate<int list>
+        |> Gen.map List.fromList
         |> Arb.fromGen
 
 let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<ListGen> ] }
