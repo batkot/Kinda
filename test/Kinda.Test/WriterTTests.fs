@@ -5,14 +5,14 @@ open Expecto
 open FsCheck
 
 open Kinda.Monad
+open Kinda.Monoid
 open Kinda.WriterT
 
 open Kinda.Test.FunctorTests
 open Kinda.Test.ApplicativeTests
 open Kinda.Test.MonadTests
 
-let listMonoid = ListMonoid<string> ()
-let writerMonad = WriterMonad.MonadInstance listMonoid
+let writerMonad = WriterMonad.MonadInstance Monoid.list
 
 type WriterGen = 
     static member Writer () =
