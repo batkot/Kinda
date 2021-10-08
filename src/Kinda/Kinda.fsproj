@@ -16,6 +16,7 @@
     <Compile Include="StateT.fs" />
     <Compile Include="ReaderT.fs" />
     <Compile Include="WriterT.fs" />
+    <Compile Include="ExceptT.fs" />
     <Compile Include="Free.fs" />
     <Compile Include="IO.fs" />
   </ItemGroup>

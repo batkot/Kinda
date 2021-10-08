@@ -12,7 +12,7 @@ open Kinda.Test.FunctorTests
 open Kinda.Test.ApplicativeTests
 open Kinda.Test.MonadTests
 
-let writerMonad = WriterMonad.MonadInstance Monoid.list
+let writerMonad = writer Monoid.list
 
 type WriterGen = 
     static member Writer () =
@@ -23,14 +23,14 @@ type WriterGen =
                 writerContent
                 |> List.map (fun x -> Writer.tell [x])
                 |> List.fold (fun a b -> 
-                    monad writerMonad { 
+                    writerMonad { 
                         do! a
                         return! b
                     }) 
-                    (monad writerMonad { return ()})
+                    (writerMonad { return ()})
 
 
-            return monad writerMonad { 
+            return writerMonad { 
                 do! w
                 return x 
             }
