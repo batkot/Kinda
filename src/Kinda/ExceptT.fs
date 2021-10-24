@@ -100,7 +100,7 @@ type ExceptTMonad<'e, 'M, 'MI when 'MI :> Monad<'M>> (innerMonad: 'MI) =
 
 let exceptT (innerMonad: MonadBuilder<'M, 'MI>) = monadT <| ExceptTMonad(innerMonad)
 
-type Except<'e> = ExceptT<'e, IdentityH, IdentityMonad>
+type Except<'e, 'a> = ExceptT<'e, IdentityH, 'a>
 
 module Except =
     let throwError err = ExceptT.throwError IdentityMonad.Instance err

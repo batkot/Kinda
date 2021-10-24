@@ -9,24 +9,23 @@ open Kinda.Test.FunctorTests
 open Kinda.Test.ApplicativeTests
 open Kinda.Test.MonadTests
 
-open Kinda.App
 open Kinda.Monad
 open Kinda.Identity
 open Kinda.StateT
 
 let stateEq state = 
-    { new Eq<App<StateTH<'s>, IdentityH>> with
+    { new Eq<StateTH<'s, IdentityH>> with
         member _.AreEqual x y =
             let run = State.run state
             run x = run y
     }
 
 type StateGen = 
-    static member State () =
+    static member State () : Arbitrary<State<string, int>> =
         gen {
             let! f = Arb.generate<string -> string * int>
 
-            return monad StateMonad.Instance {
+            return state {
                 let! state = State.get
                 let (newState, x) = f state
                 do! State.put newState

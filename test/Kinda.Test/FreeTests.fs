@@ -19,11 +19,12 @@ open Kinda.Identity
 open Kinda.Free
 open Kinda.StateT
 open Kinda.ReaderT
+open Kinda.ExceptT
 
 let private freeIdentity = FreeMonad(IdentityMonad.Instance)
 
 type FreeGen = 
-    static member Free () =
+    static member Free () : Arbitrary<Free<IdentityH, int>> =
         gen {
             let! x = Arb.generate<int>
             return monad freeIdentity { return x }
@@ -80,10 +81,11 @@ let tests =
                 |> eq.AreEqual monadResult
                 |> Expect.isTrue "Results from Free and Monad should be the same"
 
-            testCase "Identity" <| fun () -> test defaultEquality IdentityMonad.Instance
+            testCase "Identity" <| fun () -> test defaultEquality identity
             testCase "List" <| fun () -> test defaultEquality ListMonad.Instance
-            testCase "State" <| fun () -> test (stateEq 10) StateMonad.Instance
-            testCase "Reader" <| fun () -> test (readerEq "Reader") ReaderMonad.Instance
+            testCase "State" <| fun () -> test (stateEq 10) state
+            testCase "Reader" <| fun () -> test (readerEq "Reader") reader
+            testCase "Except" <| fun () -> test defaultEquality except
         ]
 
         testCase "Can interpret FreeMonad into Monad" <| fun () ->
@@ -99,11 +101,11 @@ let tests =
             } 
 
             let transformToState =
-                { new NaturalTransformation<TestFunctorH, App<StateTH<string list>, IdentityH>> with 
+                { new NaturalTransformation<TestFunctorH, StateTH<string list, IdentityH>> with 
                     member _.Transform (x: App<TestFunctorH, 'a>) =
                         match TestFunctorH.Project x with
                         | Tell (msg, a) ->
-                            monad StateMonad.Instance {
+                            state {
                                 let! state = State.get
                                 do! State.put (state @ [msg])
                                 return a

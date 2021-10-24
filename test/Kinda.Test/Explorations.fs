@@ -20,13 +20,13 @@ type ReaderMonadClass<'r,'M> =
 
 
 module Generics = 
-    type MyStackTH = App<ReaderTH<string>,App<StateTH<int>, IdentityH>>
+    type MyStackTH = ReaderTH<string,StateTH<int, IdentityH>>
 
     type MyStack () =
         let stack = ReaderTMonad(StateMonad())
         let monad = stack :> Monad<MyStackTH>
 
-        member _.Run (env: string) (state: int) (x: ReaderT<string, App<StateTH<int>, IdentityH>, 'a>) : (int * 'a)=
+        member _.Run (env: string) (state: int) (x: ReaderT<string, StateTH<int, IdentityH>, 'a>) : (int * 'a)=
             x
             |> ReaderT.run env 
             |> State.run state
@@ -60,13 +60,12 @@ module Generics =
 
     let hmm (m: ReaderTMonad<string, _, _>) x =
         let stack = monad m |> stateT
-
         stack {
             let! env = MonadTrans.lift stack <| ReaderT.ask (MonadTrans.innerMonad m)
             return x
         }
 
-    let qwe =
+    let qwe: ReaderT<int, StateTH<int,ReaderTH<string,IdentityH>>, int> =
         let stack = reader |> stateT |> readerT 
 
         stack {
@@ -84,7 +83,7 @@ module Generics =
             return x + y + (String.length z)
         }
 
-    let yhm (m: MonadTransBuilder<_, App<ReaderTH<int>, _>, ReaderTMonad<string, _, _>, _>) x = 
+    let yhm (m: MonadTransBuilder<_, ReaderTH<int, _>, ReaderTMonad<string, _, _>, _>) x = 
         let stack = stateT m 
         stack {
             let! env = MonadTrans.lift stack <| ReaderT.ask (MonadTrans.innerMonad m)

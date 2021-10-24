@@ -4,7 +4,6 @@ open Expecto
 
 open FsCheck
 
-open Kinda.Monad
 open Kinda.Monoid
 open Kinda.WriterT
 
@@ -15,7 +14,7 @@ open Kinda.Test.MonadTests
 let writerMonad = writer Monoid.list
 
 type WriterGen = 
-    static member Writer () =
+    static member Writer () : Arbitrary<Writer<string list, int>> =
         gen {
             let! x = Arb.generate<int>
             let! writerContent = Arb.generate<string list>

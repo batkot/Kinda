@@ -5,7 +5,6 @@ open Expecto
 open FsCheck
 
 open Kinda.Monad
-open Kinda.StateT
 open Kinda.ExceptT
 
 open Kinda.Test.FunctorTests
@@ -14,10 +13,10 @@ open Kinda.Test.MonadTests
 
 type TestError = private Error of string
 
-let exceptMonad = ExceptMonad.Instance :> ExceptMonad<TestError>
+let exceptMonad = ExceptMonad.Instance :> Monad<_>
 
 type ExceptGen = 
-    static member Except () =
+    static member Except () : Arbitrary<Except<TestError, int>> =
         gen {
             let! x = Arb.generate<int>
             let! failed = Arb.generate<bool>
@@ -54,7 +53,7 @@ let tests =
 
             let result = 
                 shouldRun @ [fail] @ shouldNotRun
-                |> List.fold (exceptMonad :> Monad<_>).Bind ((exceptMonad :> Monad<_>).Pure 0)
+                |> List.fold exceptMonad.Bind (exceptMonad.Pure 0)
                 |> Except.run
 
             result = Left (Error $"{failAt}")
@@ -63,7 +62,7 @@ let tests =
             let numberOfActions = ((abs x) % 1000)
             let combinedAction =
                 List.replicate numberOfActions increment
-                |> List.fold (exceptMonad :> Monad<_>).Bind ((exceptMonad :> Monad<_>).Pure 0)
+                |> List.fold exceptMonad.Bind (exceptMonad.Pure 0)
 
             Right numberOfActions = Except.run combinedAction
     ]

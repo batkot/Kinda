@@ -5,7 +5,6 @@ open Expecto.Flip
 
 open FsCheck
 
-open Kinda.App
 open Kinda.Monad
 open Kinda.Identity
 open Kinda.ReaderT
@@ -15,18 +14,18 @@ open Kinda.Test.ApplicativeTests
 open Kinda.Test.MonadTests
 
 let readerEq env = 
-    { new Eq<App<ReaderTH<'r>, IdentityH>> with
+    { new Eq<ReaderTH<'r, IdentityH>> with
         member _.AreEqual x y = 
             let run = ReaderT.run env
             run x = run y
     }
 
 type ReaderGen = 
-    static member Reader () =
+    static member Reader () : Arbitrary<Reader<string, int>> =
         gen {
             let! f = Arb.generate<string -> int>
 
-            return monad ReaderMonad.Instance {
+            return reader {
                 let! env = Reader.ask
                 return f env
             }
