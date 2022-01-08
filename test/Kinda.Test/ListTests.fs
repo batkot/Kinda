@@ -15,7 +15,8 @@ type ListGen =
         { new HktGen<ListH> with 
             member _.Generate<'a> () = 
                 Arb.generate<'a list>
-                |> Gen.map List.fromList
+                //Perf problems with List
+                |> Gen.map (List.truncate 10 >> List.fromList)
         } |> HktGen.toArb
 
 let fsCheckConfig = FsCheckConfig.withFunctorGen<ListGen>

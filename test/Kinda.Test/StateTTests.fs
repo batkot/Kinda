@@ -40,29 +40,18 @@ let tests =
         monadLaws (stateEq "State") StateMonad.Instance
 
         testList "Should maintain state" [
-            let stateAction (f: 's -> 's) = 
-                monad StateMonad.Instance {
-                    let! state = State.get<'s>
-
-                    do! f state |> State.put
-                }
-
             testProperty "Int" <| 
                 fun (initState: int) (added: int) -> 
-                    stateAction ((+) added)
+                    State.fromFunction (fun s -> s + added, ())
                     |> State.run initState
                     |> fst
                     |> Expect.equal "State should be maintained" (initState + added)
         ]
 
         testList "Should return computed value based on state" [
-            let stateAction (f: 's -> 'x) = 
-                State.get<'s> 
-                |> (StateMonad.Instance :> Monad<_>).Map f
-
             testProperty "Int" <|
                 fun (initState: int) (added: int) -> 
-                    stateAction ((+) added)
+                    State.fromFunction (fun s -> s, s + added)
                     |> State.run initState
                     |> snd
                     |> Expect.equal "Should compute result based on state" (initState + added)

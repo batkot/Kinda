@@ -40,16 +40,9 @@ let tests =
         monadLaws (readerEq 16) ReaderMonad.Instance
 
         testList "Should return computed value based on environment" [
-            let readerAction (f: 'r -> 'a) = 
-                monad ReaderMonad.Instance {
-                    let! env = Reader.ask
-
-                    return f env
-                }
-
             testProperty "Int" <| 
                 fun (env: int) (added: int) -> 
-                    readerAction ((+) added)
+                    Reader.fromFunction ((+) added)
                     |> Reader.run env
                     |> Expect.equal "Environment should be passed" (env + added)
         ]
