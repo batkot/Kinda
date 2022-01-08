@@ -30,14 +30,14 @@ type StateGen<'s> =
                 |> Gen.map State.fromFunction
         } |> HktGen.toArb
 
-let fsCheckConfig = FsCheckConfig.withFunctorGen<StateGen<TestState>>
+let fsCheckConfig<'state> = FsCheckConfig.withFunctorGen<StateGen<'state>>
 
 [<Tests>]
 let tests = 
     testList "State Tests" [
-        functorLaws fsCheckConfig (stateEq "State") StateMonad.Instance
-        applicativeLaws fsCheckConfig (stateEq 10) StateMonad.Instance
-        monadLaws (stateEq 10) StateMonad.Instance
+        functorLaws fsCheckConfig<string> (stateEq "State") StateMonad.Instance
+        applicativeLaws fsCheckConfig<int> (stateEq 20) StateMonad.Instance
+        monadLaws (stateEq "State") StateMonad.Instance
 
         testList "Should maintain state" [
             let stateAction (f: 's -> 's) = 

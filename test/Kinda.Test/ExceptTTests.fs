@@ -39,7 +39,7 @@ let fsCheckConfig = FsCheckConfig.withFunctorGen<ExceptGen>
 let tests = 
     testList "Except Tests" [
         functorLaws fsCheckConfig defaultEquality exceptMonad
-        applicativeLaws fsCheckConfig defaultEquality except
+        applicativeLaws fsCheckConfig defaultEquality exceptMonad
         monadLaws defaultEquality except
 
         let increment x = except {

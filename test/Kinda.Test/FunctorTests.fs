@@ -14,7 +14,11 @@ let defaultEquality<'F> =
     }
 
 module private Laws = 
-    let identity<'F, 'a when 'a : equality> (eq: Eq<'F>) (functor: Functor<'F>) (f: App<'F,'a>) =
+    let identity<'F, 'a when 'a : equality> 
+        (eq: Eq<'F>) 
+        (functor: Functor<'F>) 
+        (f: App<'F,'a>) 
+        =
         eq.AreEqual f <| functor.Map id f
 
     let composition<'F, 'a, 'b, 'c when 'c : equality> 

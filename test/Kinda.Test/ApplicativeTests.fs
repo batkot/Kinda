@@ -7,21 +7,26 @@ open Kinda.Applicative
 open Kinda.Test.FunctorTests
 
 module private Laws =
-    let identity 
+    let identity<'F, 'a when 'a : equality>
         (eq: Eq<'F>)
         (applicative: Applicative<'F>) 
-        (fa: App<'F,'a>) =
+        (fa: App<'F,'a>) 
+        =
         applicative.Apply (applicative.Pure id) fa 
         |> eq.AreEqual fa
 
-    let homomorphism (eq: Eq<'F>) (applicative: Applicative<'F>) (f : 'a -> 'b) (x: 'a) = 
+    let homomorphism<'F, 'a, 'b when 'b : equality>
+        (eq: Eq<'F>) 
+        (applicative: Applicative<'F>) 
+        (f : 'a -> 'b) (x: 'a) 
+        = 
         let ff = applicative.Pure f
         let fx = applicative.Pure x
 
         applicative.Apply ff fx 
         |> eq.AreEqual (applicative.Pure (f x))
 
-    let composition 
+    let composition<'F, 'a, 'b, 'c when 'c : equality>
         (eq: Eq<'F>)
         (applicative: Applicative<'F>)
         (f: App<'F,'a -> 'b>)
@@ -30,17 +35,18 @@ module private Laws =
         =
         let ap a f = applicative.Apply f a
         let left = 
-            applicative.Pure (>>)
-            |> ap f
+            applicative.Pure (<<)
             |> ap g
+            |> ap f
             |> ap fa
+
         let right = 
             applicative.Apply f fa
             |> applicative.Apply g
 
         eq.AreEqual left right
 
-    let interchange
+    let interchange<'F, 'a, 'b when 'b : equality>
         (eq: Eq<'F>)
         (applicative: Applicative<'F>)
         (f: App<'F, 'a -> 'b>)
@@ -54,30 +60,25 @@ module private Laws =
 
 
 let applicativeLaws (fsCheckConfig: FsCheckConfig) (eq: Eq<'F>) (applicative: Applicative<'F>) = 
+    let applicativeTest test = test eq applicative
     testList "Applicative Laws" [
         testList "Identity" [
-            let genericIdentity x = Laws.identity eq applicative (applicative.Pure x)
-
-            testPropertyWithConfig fsCheckConfig "Int" genericIdentity<int>
-            testPropertyWithConfig fsCheckConfig "String" genericIdentity<string>
-            testPropertyWithConfig fsCheckConfig "List of tuples" genericIdentity<int*string list>
+            testPropertyWithConfig fsCheckConfig "Int" <| Laws.identity<'F, int> eq applicative
+            testPropertyWithConfig fsCheckConfig "String" <| applicativeTest Laws.identity<'F,string>
+            testPropertyWithConfig fsCheckConfig "List of tuples" <| applicativeTest Laws.identity<'F, int*string list>
         ]
 
         testList "Homomorphism" [
-            let genericHomomorphism x y = Laws.homomorphism eq applicative x y
-
             testPropertyWithConfig fsCheckConfig "One" <| fun (x: int) (y: int) -> Laws.homomorphism eq applicative ((+) x >> sprintf "%A") y
-            testPropertyWithConfig fsCheckConfig "Two" genericHomomorphism<int,string>
-            testPropertyWithConfig fsCheckConfig "Three" genericHomomorphism<int list,string option>
-            testPropertyWithConfig fsCheckConfig "Four" <| genericHomomorphism Option.isSome
+            testPropertyWithConfig fsCheckConfig "Two" <| applicativeTest Laws.homomorphism<'F, int,string>
+            testPropertyWithConfig fsCheckConfig "Three" <| applicativeTest Laws.homomorphism<'F, int list,string option>
+            testPropertyWithConfig fsCheckConfig "Four" <| (applicativeTest Laws.homomorphism) Option.isSome
         ]
 
         testList "Composition" [
-            let genericComposition f g x = Laws.composition eq applicative (applicative.Pure f) (applicative.Pure g) (applicative.Pure x)
-
-            testPropertyWithConfig fsCheckConfig "One" <| genericComposition List.length (sprintf "%d")
-            testPropertyWithConfig fsCheckConfig "Two" genericComposition<float option, Result<float, string>, string>
-            testPropertyWithConfig fsCheckConfig "Three" genericComposition<int, string list, unit option>
+            testPropertyWithConfig fsCheckConfig "One" <| (applicativeTest Laws.composition) (applicative.Pure List.length) (applicative.Pure (sprintf "%d"))
+            testPropertyWithConfig fsCheckConfig "Two" <| applicativeTest Laws.composition<'F, float option, Result<float, string>, string>
+            testPropertyWithConfig fsCheckConfig "Three" <| applicativeTest Laws.composition<'F, int, string list, unit option>
         ]
 
         testList "Interchange" [
@@ -86,5 +87,6 @@ let applicativeLaws (fsCheckConfig: FsCheckConfig) (eq: Eq<'F>) (applicative: Ap
             testPropertyWithConfig fsCheckConfig "One" <| genericInterchange id
             testPropertyWithConfig fsCheckConfig "Two" <| genericInterchange (sprintf "%A")
             testPropertyWithConfig fsCheckConfig "Three" <| genericInterchange List.length
+            testPropertyWithConfig fsCheckConfig "Four" <| applicativeTest (Laws.interchange<'F, int, string>)
         ]
     ]
