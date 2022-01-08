@@ -75,7 +75,7 @@ type ReaderMonad<'r> () =
     static member Instance = ReaderMonad() :> ReaderTMonad<'r,_, _>
 
 module Reader = 
-    let ask<'r> = ReaderT.ask IdentityMonad.Instance : Reader<'r, 'r>
+    let ask<'r> : Reader<'r,'r> = ReaderT.ask IdentityMonad.Instance
     let run env = ReaderT.run env >> Identity.run
     let fromFunction (f: 'r -> 'a) =
         f >> Identity.fromA

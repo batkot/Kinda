@@ -24,10 +24,11 @@ module Either =
         | Right y -> g y
 
     let collapse x = either id id x
-
     let collapseLeft f = either f id
-
     let collapseRight f = either id f
+
+    let bindLeft f x = either f Right x
+    let bindRight f x = either Left f x
     
 type private InnerExceptT<'e, 'M, 'a> = App<'M, Either<'e, 'a>>
 

@@ -72,7 +72,8 @@ type Writer<'w, 'a> = WriterT<'w, IdentityH, 'a>
 let writerT writerMonoid (inner: MonadBuilder<'M,'S>) = monadT <| WriterTMonad (writerMonoid, inner)
 
 module Writer =
-    let tell (w: 'w) = WriterT.tell IdentityMonad.Instance w
+    let tell (w: 'w) : Writer<'w, unit> = 
+        WriterT.tell IdentityMonad.Instance w
 
 type WriterMonad<'w>(writerMonoid: Monoid<'w>) = 
     inherit WriterTMonad<'w, IdentityH, IdentityMonad>(writerMonoid, IdentityMonad.Instance)

@@ -33,7 +33,8 @@ module StateT =
     let put (monad: Monad<'M>) (state: 's): StateT<'s,'M, unit> =
         put monad state |> inject
 
-    let run (state: 's) (x: StateT<'s,'M,'a>) = project x |> runStateT state
+    let run (state: 's) (x: StateT<'s,'M,'a>) = 
+        project x |> runStateT state
 
     let fromFunction (stateT: 's -> App<'M, 's * 'a>) : StateT<'s,'M,'a>=
         MkStateT stateT |> inject
@@ -78,11 +79,16 @@ let stateT (inner: MonadBuilder<'M, 'S>) = monadT <| StateTMonad (inner.Monad)
 type State<'s,'a> = StateT<'s, IdentityH, 'a>
 
 module State =
-    let get<'s> = StateT.get<_, 's> IdentityMonad.Instance 
+    let get<'s> : State<'s,'s> = 
+        StateT.get IdentityMonad.Instance 
 
-    let put (state: 'state) = StateT.put IdentityMonad.Instance state
+    let put (state: 's) : State<'s, unit> = 
+        StateT.put IdentityMonad.Instance state
 
-    let run (state: 'state) = StateT.run state >> Identity.run
+    let run (state: 's) = StateT.run state >> Identity.run
+
+    let fromFunction (f: 's -> ('s * 'a)) : State<'s, 'a> =
+        StateT.fromFunction <| fun st -> identity { return f st }
 
 type StateMonad<'s> () = 
     inherit StateTMonad<'s, IdentityH, IdentityMonad>(IdentityMonad.Instance)
