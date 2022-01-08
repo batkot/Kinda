@@ -24,6 +24,6 @@ let fsCheckConfig = FsCheckConfig.withFunctorGen<ListGen>
 let ``List Tests`` =
     testList "List Tests" [
       functorLaws fsCheckConfig defaultEquality ListMonad.Instance
-      applicativeLaws defaultEquality ListMonad.Instance
+      applicativeLaws fsCheckConfig defaultEquality ListMonad.Instance
       monadLaws defaultEquality ListMonad.Instance
     ]

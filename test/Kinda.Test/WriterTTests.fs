@@ -33,6 +33,6 @@ let fsCheckConfig = FsCheckConfig.withFunctorGen<WriterGen>
 let tests = 
     testList "Writer Monad Tests" [
         functorLaws fsCheckConfig defaultEquality writerMonad
-        applicativeLaws defaultEquality writerMonad
+        applicativeLaws fsCheckConfig defaultEquality writerMonad
         monadLaws defaultEquality writerMonad
     ]

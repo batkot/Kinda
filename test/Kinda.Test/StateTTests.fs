@@ -36,7 +36,7 @@ let fsCheckConfig = FsCheckConfig.withFunctorGen<StateGen<TestState>>
 let tests = 
     testList "State Tests" [
         functorLaws fsCheckConfig (stateEq "State") StateMonad.Instance
-        applicativeLaws (stateEq 10) StateMonad.Instance
+        applicativeLaws fsCheckConfig (stateEq 10) StateMonad.Instance
         monadLaws (stateEq 10) StateMonad.Instance
 
         testList "Should maintain state" [
