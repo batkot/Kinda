@@ -2,6 +2,7 @@ module Kinda.Test.ListTests
 
 open Expecto
 open FsCheck
+open Kinda.Test.Helpers
 
 open Kinda.Test.FunctorTests
 open Kinda.Test.ApplicativeTests
@@ -10,16 +11,17 @@ open Kinda.Test.MonadTests
 open Kinda.List
 
 type ListGen = 
-    static member List () =
-        Arb.generate<int list>
-        |> Gen.map List.fromList
-        |> Arb.fromGen
+    static member Generator : Arbitrary<HktGen<ListH>> = 
+        { new HktGen<ListH> with 
+            member _.Generate<'a> () = 
+                Arb.generate<'a list>
+                |> Gen.map List.fromList
+        } |> HktGen.toArb
 
-let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<ListGen> ] }
+let fsCheckConfig = FsCheckConfig.withFunctorGen<ListGen>
 
 [<Tests>]
 let ``List Tests`` =
-
     testList "List Tests" [
       functorLaws fsCheckConfig defaultEquality ListMonad.Instance
       applicativeLaws defaultEquality ListMonad.Instance

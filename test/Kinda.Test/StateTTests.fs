@@ -2,8 +2,8 @@ module Kinda.Test.StateTTests
 
 open Expecto
 open Expecto.Flip
-
 open FsCheck
+open Kinda.Test.Helpers
 
 open Kinda.Test.FunctorTests
 open Kinda.Test.ApplicativeTests
@@ -20,21 +20,17 @@ let stateEq state =
             run x = run y
     }
 
-type StateGen = 
-    static member State () : Arbitrary<State<string, int>> =
-        gen {
-            let! f = Arb.generate<string -> string * int>
+type TestState = string
 
-            return state {
-                let! state = State.get
-                let (newState, x) = f state
-                do! State.put newState
-                return x
-            }
-        }
-        |> Arb.fromGen
+type StateGen<'s> = 
+    static member Generator : Arbitrary<HktGen<StateH<'s>>> = 
+        { new HktGen<StateH<'s>> with 
+            member _.Generate<'a> () = 
+                Arb.generate<'s-> 's * 'a>
+                |> Gen.map State.fromFunction
+        } |> HktGen.toArb
 
-let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<StateGen> ] }
+let fsCheckConfig = FsCheckConfig.withFunctorGen<StateGen<TestState>>
 
 [<Tests>]
 let tests = 

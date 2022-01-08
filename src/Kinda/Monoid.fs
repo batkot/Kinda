@@ -5,7 +5,7 @@ type Monoid<'m> =
     abstract Combine: 'm -> 'm -> 'm
 
 module Monoid =
-    let list = 
+    let list<'a> = 
         { new Monoid<'a list> with 
             member _.Empty = []
             member _.Combine x y = x @ y

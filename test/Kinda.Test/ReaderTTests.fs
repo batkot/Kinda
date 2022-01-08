@@ -2,8 +2,8 @@ module Kinda.Test.ReaderTTests
 
 open Expecto
 open Expecto.Flip
-
 open FsCheck
+open Kinda.Test.Helpers
 
 open Kinda.Monad
 open Kinda.Identity
@@ -20,19 +20,17 @@ let readerEq env =
             run x = run y
     }
 
-type ReaderGen = 
-    static member Reader () : Arbitrary<Reader<string, int>> =
-        gen {
-            let! f = Arb.generate<string -> int>
+type TestEnv = string
 
-            return reader {
-                let! env = Reader.ask
-                return f env
-            }
-        }
-        |> Arb.fromGen
+type ReaderGen<'r> = 
+    static member Generator : Arbitrary<HktGen<ReaderH<'r>>> =
+        { new HktGen<ReaderH<'r>> with 
+            member _.Generate<'a> () = 
+                Arb.generate<'r -> 'a>
+                |> Gen.map Reader.fromFunction
+        } |> HktGen.toArb
 
-let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<ReaderGen> ] }
+let fsCheckConfig = FsCheckConfig.withFunctorGen<ReaderGen<TestEnv>>
 
 [<Tests>]
 let tests = 

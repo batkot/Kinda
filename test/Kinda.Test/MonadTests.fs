@@ -8,7 +8,6 @@ open Kinda.Monad
 open Kinda.Test.FunctorTests
 
 module private Laws =
-
     let leftIdentity (eq: Eq<'M>) (monad: Monad<'M>) (f: 'a -> App<'M, 'b>) (x: 'a) =
         monad.Bind (monad.Pure x) f 
         |> eq.AreEqual (f x)

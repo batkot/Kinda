@@ -67,6 +67,7 @@ type WriterTMonad<'w, 'M, 'MI when 'MI :> Monad<'M>> (writerMonoid: Monoid<'w>, 
 
     static member Instance monoid innerMonad = WriterTMonad(monoid, innerMonad) :> WriterTMonad<'w, 'M, 'MI>
 
+type WriterH<'w> = WriterTH<'w, IdentityH>
 type Writer<'w, 'a> = WriterT<'w, IdentityH, 'a>
 
 let writerT writerMonoid (inner: MonadBuilder<'M,'S>) = monadT <| WriterTMonad (writerMonoid, inner)
@@ -74,6 +75,10 @@ let writerT writerMonoid (inner: MonadBuilder<'M,'S>) = monadT <| WriterTMonad (
 module Writer =
     let tell (w: 'w) : Writer<'w, unit> = 
         WriterT.tell IdentityMonad.Instance w
+
+    let fromTuple (x: 'a * 'w) : Writer<'w,'a> =
+        Identity.fromA x
+        |> WriterT.fromApp
 
 type WriterMonad<'w>(writerMonoid: Monoid<'w>) = 
     inherit WriterTMonad<'w, IdentityH, IdentityMonad>(writerMonoid, IdentityMonad.Instance)

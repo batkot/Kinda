@@ -67,6 +67,7 @@ type ReaderTMonad<'r, 'M, 'MI when 'MI :> Monad<'M>> (innerMonad: 'MI) =
 
 let readerT (inner: MonadBuilder<'M, 'I>) = monadT <|  ReaderTMonad(inner.Monad)
 
+type ReaderH<'r> = ReaderTH<'r, IdentityH>
 type Reader<'r,'a> = ReaderT<'r, IdentityH, 'a>
 
 type ReaderMonad<'r> () =

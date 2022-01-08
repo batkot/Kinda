@@ -1,8 +1,8 @@
 module Kinda.Test.WriterTTests
 
 open Expecto
-
 open FsCheck
+open Kinda.Test.Helpers
 
 open Kinda.Monoid
 open Kinda.WriterT
@@ -11,32 +11,23 @@ open Kinda.Test.FunctorTests
 open Kinda.Test.ApplicativeTests
 open Kinda.Test.MonadTests
 
-let writerMonad = writer Monoid.list
+type TestWriter = string
+type TestWriterMonoid = TestWriter list
+
+let writerMonad = writer Monoid.list<string>
 
 type WriterGen = 
-    static member Writer () : Arbitrary<Writer<string list, int>> =
-        gen {
-            let! x = Arb.generate<int>
-            let! writerContent = Arb.generate<string list>
-            let w = 
-                writerContent
-                |> List.map (fun x -> Writer.tell [x])
-                |> List.fold (fun a b -> 
-                    writerMonad { 
-                        do! a
-                        return! b
-                    }) 
-                    (writerMonad { return ()})
+    static member Writer () : Arbitrary<HktGen<WriterH<TestWriterMonoid>>> =
+        { new HktGen<WriterH<TestWriterMonoid>> with 
+            member _.Generate<'a> () =
+                gen {
+                    let! x = Arb.generate<'a>
+                    let! writerContent = Arb.generate<TestWriterMonoid>
+                    return Writer.fromTuple (x, writerContent)
+                }
+        } |> HktGen.toArb
 
-
-            return writerMonad { 
-                do! w
-                return x 
-            }
-        }
-        |> Arb.fromGen
-
-let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<WriterGen> ] }
+let fsCheckConfig = FsCheckConfig.withFunctorGen<WriterGen>
 
 [<Tests>]
 let tests = 

@@ -1,10 +1,11 @@
 module Kinda.ExceptTTests
 
 open Expecto
-
 open FsCheck
+open Kinda.Test.Helpers
 
 open Kinda.Monad
+open Kinda.Identity
 open Kinda.ExceptT
 
 open Kinda.Test.FunctorTests
@@ -16,21 +17,23 @@ type TestError = private Error of string
 let exceptMonad = ExceptMonad.Instance :> Monad<_>
 
 type ExceptGen = 
-    static member Except () : Arbitrary<Except<TestError, int>> =
-        gen {
-            let! x = Arb.generate<int>
-            let! failed = Arb.generate<bool>
-            let! errorMsg = Arb.generate<string>
+    static member Generator : Arbitrary<HktGen<ExceptH<TestError>>> =
+        { new HktGen<ExceptH<TestError>> with 
+            member _.Generate<'a> () = 
+                gen {
+                    let! x = Arb.generate<'a>
+                    let! failed = Arb.generate<bool>
+                    let! errorMsg = Arb.generate<string>
 
-            return except {
-                if failed
-                then return! Except.throwError <| Error errorMsg
-                else return x
-            }
-        }
-        |> Arb.fromGen
+                    return except {
+                        if failed
+                        then return! Except.throwError <| Error errorMsg
+                        else return x
+                    }
+                }
+        } |> HktGen.toArb
 
-let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<ExceptGen> ] }
+let fsCheckConfig = FsCheckConfig.withFunctorGen<ExceptGen>
 
 [<Tests>]
 let tests = 

@@ -76,6 +76,7 @@ type StateTMonad<'s, 'M, 'MI when 'MI :> Monad<'M>> (innerMonad: 'MI) =
 
 let stateT (inner: MonadBuilder<'M, 'S>) = monadT <| StateTMonad (inner.Monad)
 
+type StateH<'s> = StateTH<'s, IdentityH>
 type State<'s,'a> = StateT<'s, IdentityH, 'a>
 
 module State =
