@@ -1,6 +1,4 @@
-# Kinda 
-
-Build status ![Build status](https://github.com/batkot/kinda/actions/workflows/dotnet.yml/badge.svg?event=push)
+# Kinda ![Build status](https://github.com/batkot/kinda/actions/workflows/dotnet.yml/badge.svg?event=push)
 
 Small experimental library exploring higher-kinded polymorphism and transformer/MTL-like monad compositions.
 
