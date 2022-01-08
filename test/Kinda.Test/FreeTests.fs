@@ -2,8 +2,8 @@ module Kinda.Test.FreeTests
 
 open Expecto
 open Expecto.Flip
-
 open FsCheck
+open Kinda.Test.Helpers
 
 open Kinda.Test.FunctorTests
 open Kinda.Test.ApplicativeTests
@@ -24,14 +24,16 @@ open Kinda.ExceptT
 let private freeIdentity = FreeMonad(IdentityMonad.Instance)
 
 type FreeGen = 
-    static member Free () : Arbitrary<Free<IdentityH, int>> =
-        gen {
-            let! x = Arb.generate<int>
-            return monad freeIdentity { return x }
-        }
-        |> Arb.fromGen
+    static member Generator () : Arbitrary<HktGen<FreeH<IdentityH>>> =
+        { new HktGen<FreeH<IdentityH>> with 
+            member _.Generate<'a> () = 
+                gen {
+                    let! x = Arb.generate<'a>
+                    return monad freeIdentity { return x }
+                }
+        } |> HktGen.toArb
 
-let fsCheckConfig = { FsCheckConfig.defaultConfig with arbitrary = [ typeof<FreeGen> ] }
+let fsCheckConfig = FsCheckConfig.withFunctorGen<FreeGen>
 
 type TestFunctorF<'a> = Tell of string * 'a
 type TestFunctorH =
