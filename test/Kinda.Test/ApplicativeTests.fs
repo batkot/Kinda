@@ -58,7 +58,6 @@ module private Laws =
 
         eq.AreEqual left right
 
-
 let applicativeLaws (fsCheckConfig: FsCheckConfig) (eq: Eq<'F>) (applicative: Applicative<'F>) = 
     let applicativeTest test = test eq applicative
     testList "Applicative Laws" [

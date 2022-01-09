@@ -14,12 +14,15 @@ open Kinda.Test.StateTTests
 open Kinda.App
 open Kinda.Functor
 open Kinda.Monad
+open Kinda.Monoid
 open Kinda.List
 open Kinda.Identity
 open Kinda.Free
 open Kinda.StateT
 open Kinda.ReaderT
 open Kinda.ExceptT
+open Kinda.WriterT
+open Kinda.MaybeT
 
 let private freeIdentity = FreeMonad(IdentityMonad.Instance)
 
@@ -88,6 +91,8 @@ let tests =
             testCase "State" <| fun () -> test (stateEq 10) state
             testCase "Reader" <| fun () -> test (readerEq "Reader") reader
             testCase "Except" <| fun () -> test defaultEquality except
+            testCase "Writer" <| fun () -> test defaultEquality (writer Monoid.list<string>)
+            testCase "Maybe" <| fun () -> test defaultEquality maybe
         ]
 
         testCase "Can interpret FreeMonad into Monad" <| fun () ->

@@ -17,6 +17,7 @@
     <Compile Include="StateTTests.fs" />
     <Compile Include="ReaderTTests.fs" />
     <Compile Include="WriterTTests.fs" />
+    <Compile Include="MaybeTTests.fs" />
     <Compile Include="ExceptTTests.fs" />
     <Compile Include="FreeTests.fs" />
     <Compile Include="Explorations.fs" />

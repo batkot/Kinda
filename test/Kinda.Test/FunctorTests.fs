@@ -32,7 +32,6 @@ module private Laws =
         functorComposed fa 
         |> eq.AreEqual (functor.Map (f >> g) fa)
 
-
 let functorLaws fsCheckConfig (eq: Eq<'F>) (functor: Functor<'F>) = 
     testList "Functor Laws" [
         testList "Identity Law" [

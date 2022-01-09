@@ -18,6 +18,7 @@
     <Compile Include="ReaderT.fs" />
     <Compile Include="WriterT.fs" />
     <Compile Include="ExceptT.fs" />
+    <Compile Include="MaybeT.fs" />
     <Compile Include="Free.fs" />
     <Compile Include="IO.fs" />
   </ItemGroup>

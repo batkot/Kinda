@@ -5,7 +5,6 @@ open Expecto.Flip
 open FsCheck
 open Kinda.Test.Helpers
 
-open Kinda.Monad
 open Kinda.Identity
 open Kinda.ReaderT
 
