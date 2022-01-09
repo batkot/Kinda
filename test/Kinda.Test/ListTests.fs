@@ -26,5 +26,5 @@ let ``List Tests`` =
     testList "List Tests" [
       functorLaws fsCheckConfig defaultEquality ListMonad.Instance
       applicativeLaws fsCheckConfig defaultEquality ListMonad.Instance
-      monadLaws defaultEquality ListMonad.Instance
+      monadLaws fsCheckConfig defaultEquality ListMonad.Instance
     ]

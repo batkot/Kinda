@@ -25,5 +25,5 @@ let ``Identity Tests`` =
     testList "Identity Tests" [
       functorLaws fsCheckConfig defaultEquality IdentityMonad.Instance
       applicativeLaws fsCheckConfig defaultEquality IdentityMonad.Instance
-      monadLaws defaultEquality IdentityMonad.Instance
+      monadLaws fsCheckConfig defaultEquality IdentityMonad.Instance
     ]

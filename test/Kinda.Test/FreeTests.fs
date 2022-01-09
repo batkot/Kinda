@@ -64,7 +64,7 @@ let tests =
     testList "Free Monad Tests" [
         functorLaws fsCheckConfig defaultEquality freeIdentity
         applicativeLaws fsCheckConfig defaultEquality freeIdentity
-        monadLaws defaultEquality freeIdentity
+        monadLaws fsCheckConfig defaultEquality freeIdentity
 
         testList "Applied to monad should act as monad" [
             let monadicAction m =

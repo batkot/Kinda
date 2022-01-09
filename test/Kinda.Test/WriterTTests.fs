@@ -34,5 +34,5 @@ let tests =
     testList "Writer Monad Tests" [
         functorLaws fsCheckConfig defaultEquality writerMonad
         applicativeLaws fsCheckConfig defaultEquality writerMonad
-        monadLaws defaultEquality writerMonad
+        monadLaws fsCheckConfig defaultEquality writerMonad
     ]

@@ -8,15 +8,15 @@ open Kinda.Monad
 open Kinda.Test.FunctorTests
 
 module private Laws =
-    let leftIdentity (eq: Eq<'M>) (monad: Monad<'M>) (f: 'a -> App<'M, 'b>) (x: 'a) =
+    let leftIdentity<'M, 'a, 'b when 'b : equality> (eq: Eq<'M>) (monad: Monad<'M>) (f: 'a -> App<'M, 'b>) (x: 'a) =
         monad.Bind (monad.Pure x) f 
         |> eq.AreEqual (f x)
 
-    let rightIdentity (eq: Eq<'M>) (monad: Monad<'M>) (m: App<'M, 'a>) =
+    let rightIdentity<'M, 'a when 'a : equality> (eq: Eq<'M>) (monad: Monad<'M>) (m: App<'M, 'a>) =
         monad.Bind m monad.Pure
         |> eq.AreEqual m
         
-    let associativity 
+    let associativity<'M, 'a, 'b, 'c when 'c : equality>
         (eq: Eq<'M>)
         (monad: Monad<'M>) 
         (m: App<'M, 'a>) 
@@ -28,21 +28,17 @@ module private Laws =
         let right = monad.Bind m f |> bind g
         eq.AreEqual left right
 
-let monadLaws (eq: Eq<'M>) (monad: Monad<'M>) = 
+let monadLaws (fsCheckConfig: FsCheckConfig) (eq: Eq<'M>) (monad: Monad<'M>) = 
     testList "Monad Laws" [
         testList "Left identity" [
-            let genericLeftId f x = Laws.leftIdentity eq monad (f >> monad.Pure) x
-
-            testProperty "One" <| genericLeftId (sprintf "%A")
-            testProperty "Two" <| genericLeftId (List.choose id >> List.length)
+            testPropertyWithConfig fsCheckConfig "One" <| Laws.leftIdentity<'M, int, string> eq monad
+            testPropertyWithConfig fsCheckConfig "Two" <| Laws.leftIdentity<'M, string list, int option> eq monad
         ]
 
-        testProperty "Right identity" <| fun x -> Laws.rightIdentity eq monad (monad.Pure x)
+        testPropertyWithConfig fsCheckConfig "Right identity" <| Laws.rightIdentity<'M, int> eq monad
 
         testList "Associativity" [
-            let genericAssociativity f g x = Laws.associativity eq monad (monad.Pure x) (f >> monad.Pure) (g >> monad.Pure)
-
-            testProperty "One" <| fun (x: int) -> genericAssociativity id ((+)x)
-            testProperty "Two" <| fun (x: int) -> genericAssociativity (+) ((|>) x)
+            testPropertyWithConfig fsCheckConfig "One" <| Laws.associativity<'M, int, Result<string,int>, bool list> eq monad 
+            testPropertyWithConfig fsCheckConfig "Two" <| Laws.associativity<'M, int list, bool option, string> eq monad 
         ]
     ]

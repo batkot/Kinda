@@ -37,7 +37,7 @@ let tests =
     testList "State Tests" [
         functorLaws fsCheckConfig<string> (stateEq "State") StateMonad.Instance
         applicativeLaws fsCheckConfig<int> (stateEq 20) StateMonad.Instance
-        monadLaws (stateEq "State") StateMonad.Instance
+        monadLaws fsCheckConfig<string> (stateEq "State") StateMonad.Instance
 
         testList "Should maintain state" [
             testProperty "Int" <| 

@@ -37,7 +37,7 @@ let tests =
     testList "Reader Tests" [
         functorLaws fsCheckConfig (readerEq "reader") ReaderMonad.Instance
         applicativeLaws fsCheckConfig (readerEq "reader") ReaderMonad.Instance
-        monadLaws (readerEq 16) ReaderMonad.Instance
+        monadLaws fsCheckConfig (readerEq "reader") ReaderMonad.Instance
 
         testList "Should return computed value based on environment" [
             testProperty "Int" <| 
