@@ -9,6 +9,7 @@ open Kinda.Hangman.Cli.Rules
 
 let monadStack = stateT io
 
+#nowarn "40"
 let rec transformerHangman =
     monadStack {
         let! puzzle = StateT.get <| MonadTrans.innerMonad monadStack

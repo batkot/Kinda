@@ -64,6 +64,7 @@ module HangmanFree =
         |> HangmanF.inject
         |> liftHangmanF
 
+#nowarn "40"
 let rec freeHangmanProgram = 
     monad HangmanFree.monad {
         let! puzzle = HangmanFree.getGame ()
@@ -83,34 +84,33 @@ let rec freeHangmanProgram =
     }
 
 module Interpreter = 
-    let mutable private privGame: Game = newGame "X" 0
+    let transformation game = 
+        let mutable privGame: Game = game
 
-    let interpret hangman =
-        match HangmanF.project hangman with
-        | WriteLine (msg, a) -> 
-            io {
-                do! writeLineIO msg
-                return a
-            }
-        | GuessNextLetter next ->
-            io {
-                let! char = getCharIO ()
-                return next char 
-            }
-        | GetGame next ->
-            io { return next privGame }
-        | SetGame (game, a) -> 
-            io {
-                privGame <- game
-                return a
-            }
+        let interpret hangman =
+            match HangmanF.project hangman with
+            | WriteLine (msg, a) -> 
+                io {
+                    do! writeLineIO msg
+                    return a
+                }
+            | GuessNextLetter next ->
+                io {
+                    let! char = getCharIO ()
+                    return next char 
+                }
+            | GetGame next ->
+                io { return next privGame }
+            | SetGame (game, a) -> 
+                io {
+                    privGame <- game
+                    return a
+                }
 
-    let nt game = 
-        privGame <- game
         { new NaturalTransformation<HangmanH, IOH> with
             member _.Transform x = interpret x }
 
 let runFree puzzle = 
     freeHangmanProgram
-    |> runFree IOMonad.Instance (Interpreter.nt puzzle)
+    |> runFree IOMonad.Instance (Interpreter.transformation puzzle)
     |> IO.run

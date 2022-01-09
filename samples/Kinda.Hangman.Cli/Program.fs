@@ -45,5 +45,6 @@ let main argv =
     match parseResult with
     | :? Parsed<Options> as parsed -> run parsed.Value
     | :? NotParsed<Options> as notParsed -> printfn "%A" <| displayHelp notParsed
+    | _ -> printfn ":("
 
     0

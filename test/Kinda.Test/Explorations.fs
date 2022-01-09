@@ -42,7 +42,7 @@ module Generics =
             member _.Put x = MonadTrans.lift stack <| StateT.put (MonadTrans.innerMonad2 stack) x
 
         interface ReaderMonadClass<string, MyStackTH> with
-            member _.Ask = ReaderT.ask<_, string> <| MonadTrans.innerMonad stack
+            member _.Ask = ReaderT.ask <| MonadTrans.innerMonad stack
 
         member _.Hmm x : App<MyStackTH, 'a> = 
             Identity.fromA x

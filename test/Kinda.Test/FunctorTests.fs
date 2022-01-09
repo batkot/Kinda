@@ -39,9 +39,7 @@ let functorLaws fsCheckConfig (eq: Eq<'F>) (functor: Functor<'F>) =
             testPropertyWithConfig fsCheckConfig "Int" <| Laws.identity<'F, int> eq functor
         ]
         testList "Composition Law" [
-            let genericComposition (fa: App<'F, int>) (f: int -> 'b) (g: 'b -> 'c) = Laws.composition eq functor f g fa
-
-            testPropertyWithConfig fsCheckConfig "Int" <| fun (a: int) (b: int) (fa: App<'F, int>) -> Laws.composition eq functor ((+) a) ((-) b) fa
-            testPropertyWithConfig fsCheckConfig "?" genericComposition<string, int list>
+            testPropertyWithConfig fsCheckConfig "Int" <| Laws.composition<'F, int, int, int> eq functor
+            testPropertyWithConfig fsCheckConfig "Two" <| Laws.composition<'F, float option, string, int list> eq functor
         ]
     ]
