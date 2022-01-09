@@ -13,7 +13,7 @@ module HktGen =
     let toGen (hktGen: HktGen<'F>)= Gen.constant hktGen
     let toArb (hktGen: HktGen<'F>)= toGen hktGen |> Arb.fromGen
 
-type FunctorGenerators = 
+type HktGenerators = 
     static member Generator<'F, 'a> () : Arbitrary<App<'F,'a>> = 
         gen {
             let! generator = Arb.generate<HktGen<'F>>
@@ -22,7 +22,7 @@ type FunctorGenerators =
 
 module FsCheckConfig = 
     let addFunctorGen<'hktGenerator> (fsCheckConfig: FsCheckConfig): FsCheckConfig = 
-        let newArbitrary = fsCheckConfig.arbitrary @ [ typeof<'hktGenerator>; typeof<FunctorGenerators>]
+        let newArbitrary = fsCheckConfig.arbitrary @ [ typeof<'hktGenerator>; typeof<HktGenerators>]
         { fsCheckConfig with arbitrary = newArbitrary }
 
     let withFunctorGen<'hktGenerator> = addFunctorGen<'hktGenerator> FsCheckConfig.defaultConfig
